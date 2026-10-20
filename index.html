@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>思绪垃圾桶</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header id="banner" aria-label="吐槽横幅"><div id="banner-track"></div></header>
+<nav id="toolbar">
+  <button id="btn-list">📜 想法列表</button>
+  <button id="btn-ai">🤖 AI整理</button>
+  <button id="btn-settings">⚙ 设置</button>
+</nav>
+<main id="stage" title="点空白处写一条新想法"></main>
+<button id="btn-add" title="新建对话框">+</button>
+<div id="trash-wrap">
+  <div id="trash" title="把对话框拖进来；双击或狂点有惊喜">
+    <svg viewBox="0 0 200 230" width="100%" height="100%" aria-hidden="true">
+      <g id="trash-lid">
+        <rect x="70" y="8" width="60" height="16" rx="6" fill="#6b8f71" stroke="#2b3a2e" stroke-width="5"/>
+        <rect x="14" y="22" width="172" height="26" rx="10" fill="#8fc19a" stroke="#2b3a2e" stroke-width="6"/>
+      </g>
+      <g id="trash-body">
+        <path d="M28 56 H172 L158 220 H42 Z" fill="#a8d5b1" stroke="#2b3a2e" stroke-width="6" stroke-linejoin="round"/>
+        <circle cx="78" cy="110" r="9" fill="#2b3a2e"/><circle cx="122" cy="110" r="9" fill="#2b3a2e"/>
+        <path id="trash-mouth" d="M78 145 Q100 165 122 145" fill="none" stroke="#2b3a2e" stroke-width="6" stroke-linecap="round"/>
+        <line x1="70" y1="180" x2="72" y2="205" stroke="#2b3a2e" stroke-width="4"/>
+        <line x1="100" y1="180" x2="100" y2="205" stroke="#2b3a2e" stroke-width="4"/>
+        <line x1="130" y1="180" x2="128" y2="205" stroke="#2b3a2e" stroke-width="4"/>
+      </g>
+    </svg>
+  </div>
+  <div id="counter">已吃掉 <b id="count">0</b> 条</div>
+</div>
+<aside id="panel" class="hidden">
+  <div class="panel-head"><h2 id="panel-title">想法列表</h2><button id="panel-close">✕</button></div>
+  <div id="panel-body"></div>
+</aside>
+<div id="toast"></div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
