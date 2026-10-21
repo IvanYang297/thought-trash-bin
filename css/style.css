@@ -41,9 +41,14 @@ pre.result{white-space:pre-wrap;background:#fff;border:2px solid #ddd;padding:8p
 .bubble textarea:focus::placeholder{opacity:.35}
 .bubble.bounce{transition:left .5s cubic-bezier(.34,1.56,.64,1),top .5s cubic-bezier(.34,1.56,.64,1)}
 
-.tag-picker{display:flex;gap:4px;margin-top:2px}
-.tag-picker button{padding:0 4px;font-size:14px;border-width:2px;box-shadow:none;border-radius:8px;opacity:.55;background:transparent}
-.tag-picker button.on{opacity:1;background:#fff;border-color:#c0392b}
+/* 心情标签：外层按钮是 ≥40×40 的点击区，里面 32px 的圆形是看得见的部分 */
+.tag-picker{display:flex;gap:2px;margin:2px -4px -6px}
+.tag-picker button{width:40px;height:40px;padding:4px;border:none;background:transparent;box-shadow:none;border-radius:50%;display:flex;align-items:center;justify-content:center;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.tag-picker button:active{transform:none;box-shadow:none}
+.tag-picker .tg{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;line-height:1;border:2px solid #c9b48a;background:rgba(255,255,255,.6);opacity:.6;transition:transform .12s,opacity .12s,border-color .12s}
+.tag-picker button:hover .tg,.tag-picker button:focus-visible .tg{opacity:1;transform:scale(1.08)}
+.tag-picker button.on .tg{opacity:1;background:#fff;border-color:#c0392b;box-shadow:0 0 0 2px rgba(192,57,43,.15)}
+@media (pointer:coarse){.tag-picker button{width:48px;height:48px}.tag-picker .tg{width:38px;height:38px;font-size:24px}}
 #tag-filter{font:inherit;padding:4px;border:2px solid #5a3e1b;border-radius:8px}
 
 #trash-wrap{position:fixed}

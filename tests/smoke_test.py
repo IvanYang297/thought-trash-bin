@@ -97,6 +97,11 @@ with sync_playwright() as p:
     pg.click('#btn-add'); tb = pg.locator('.bubble').last
     tipv = lambda: pg.evaluate("(() => { const t = document.querySelector('#tag-tip'); return t ? [t.textContent, +getComputedStyle(t).opacity] : null; })()")
     btn = tb.locator('[data-tag=idea]'); assert btn.get_attribute('aria-label') == '灵感' and not btn.get_attribute('title')
+    sz = tb.locator('.tag-picker button').evaluate_all("bs => bs.map(b => { const r = b.getBoundingClientRect(), v = b.querySelector('.tg').getBoundingClientRect(); return [r.width, r.height, v.width, parseFloat(getComputedStyle(b.querySelector('.tg')).fontSize)]; })")
+    assert all(w >= 39.99 and h >= 39.99 and 30 <= v <= 34 and f == 20 for w, h, v, f in sz), sz
+    pr = tb.locator('.tag-picker').bounding_box(); bbx = tb.bounding_box()
+    assert pr['x'] >= bbx['x'] and pr['x'] + pr['width'] <= bbx['x'] + bbx['width'] and pr['y'] + pr['height'] <= bbx['y'] + bbx['height'], (pr, bbx)
+    print('标签按钮尺寸 OK', sz[0])
     btn.hover(force=True); pg.wait_for_timeout(250); assert tipv() == ['灵感', 1], tipv()
     tr = pg.locator('#tag-tip').bounding_box(); br = btn.bounding_box()
     assert tr['y'] + tr['height'] <= br['y'] and pg.evaluate("document.querySelector('#tag-tip').parentElement === document.body")  # 在按钮上方、不在对话框里，不会被裁
@@ -272,6 +277,13 @@ with sync_playwright() as p:
     fp.click('#btn-list'); fp.wait_for_timeout(200); eb = fp.locator('#panel').bounding_box()
     assert eb['height'] < 200 and '还没有想法' in fp.text_content('#items'), eb
     fp.keyboard.press('Escape'); fp.wait_for_timeout(100); print('空状态面板紧凑 OK，高', round(eb['height']))
+    mob = b.new_context(viewport={'width': 390, 'height': 800}, has_touch=True, is_mobile=True); mp = mob.new_page()
+    mp.on('pageerror', lambda e: errors.append(str(e)))
+    mp.goto('http://127.0.0.1:8766/index.html'); mp.wait_for_selector('.bubble')
+    ms = mp.locator('.bubble .tag-picker button').first.evaluate("b => [b.getBoundingClientRect().width, parseFloat(getComputedStyle(b.querySelector('.tg')).fontSize)]")
+    assert ms[0] >= 48 and ms[1] >= 24, ms
+    mp.locator('.bubble [data-tag=rant]').first.tap(force=True); mp.wait_for_timeout(200)
+    assert mp.text_content('#tag-tip') == '已选：吐槽'; mob.close(); print('触屏大按钮 + 点按提示 OK', ms)
     print('默认状态全为空提示语 OK:', [ph for _, ph in vals])
     b.close()
 srv.shutdown()

@@ -29,7 +29,7 @@ const TAP_MS = 1500;
 export function attachTagPicker(bubble) {
   const box = document.createElement('div');
   box.className = 'tag-picker';
-  box.innerHTML = Object.entries(TAGS).map(([k, t]) => `<button type="button" data-tag="${k}" aria-label="${t.name}">${t.emoji}</button>`).join('');
+  box.innerHTML = Object.entries(TAGS).map(([k, t]) => `<button type="button" data-tag="${k}" aria-label="${t.name}"><span class="tg" aria-hidden="true">${t.emoji}</span></button>`).join('');
   box.addEventListener('pointerdown', e => e.stopPropagation());
   // 鼠标悬停显示名称；触屏没有悬停，点一下时显示约 1.5 秒
   box.addEventListener('pointerover', e => { const b = e.target.closest('button'); if (b && e.pointerType === 'mouse') showTip(b, TAGS[b.dataset.tag].name); });
