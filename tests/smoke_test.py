@@ -133,10 +133,27 @@ with sync_playwright() as p:
         const g = q.result.transaction('notes').objectStore('notes').getAll(); g.onsuccess = () => r(g.result.map(x => x.text)); }; })""")
     assert '拖着走' in n2; print('三连击飞进桶 OK（空的弹一下不保存）')
     # 使用须知 + Esc
-    pg.click('#btn-help'); h = pg.text_content('#panel-body')
+    # 使用须知：悬停小卡片
+    pg.evaluate("document.querySelector('#toast').classList.remove('show')")
+    vis = lambda: pg.evaluate("getComputedStyle(document.querySelector('#help-pop')).visibility") == 'visible'
+    pg.mouse.move(5, 300); pg.hover('#btn-help'); pg.wait_for_timeout(60); assert not vis(), '应有约 150ms 延迟'
+    pg.wait_for_timeout(300); assert vis()
+    h = pg.text_content('#help-pop')
     for k in ['Ctrl', 'Alt', '10', '三下', '双击', '连点 5 下', '心情标签', '搜索', 'AI', '复制整理提示词', '本周回顾', '横幅', 'Esc']: assert k in h, k
+    box = pg.locator('#help-pop').bounding_box(); bb = pg.locator('#btn-help').bounding_box()
+    assert 280 <= box['width'] <= 320 and box['y'] >= bb['y'] + bb['height'] and abs((box['x'] + box['width']) - (bb['x'] + bb['width'])) < 30, box
+    assert pg.locator('#panel.hidden').count() == 1  # 不再打开大面板
+    pg.wait_for_timeout(200); pg.mouse.move(14, 14)  # 先把光标挪开拍图（拍之前确认仍在）
+    pg.hover('#btn-help'); pg.wait_for_timeout(400)
+    pg.mouse.move(box['x'] + 150, box['y'] + 60, steps=5); pg.wait_for_timeout(400); assert vis(), '悬停在卡片上应保持'
     pg.screenshot(path=os.path.join(ROOT, 'docs', 'help.png'))
-    pg.keyboard.press('Escape'); assert pg.locator('#panel.hidden').count() == 1; print('使用须知 + Esc OK')
+    pg.mouse.move(400, 400); pg.wait_for_timeout(80); assert vis(); pg.wait_for_timeout(400); assert not vis(), '离开约 200ms 后隐藏'
+    pg.click('#btn-help'); pg.wait_for_timeout(250); assert vis() and pg.locator('#panel.hidden').count() == 1
+    pg.keyboard.press('Escape'); pg.wait_for_timeout(250); assert not vis()
+    pg.mouse.move(400, 400); pg.evaluate('document.activeElement.blur()'); pg.wait_for_timeout(300)
+    pg.focus('#btn-help'); pg.wait_for_timeout(250); assert vis(), '键盘聚焦应显示'
+    pg.keyboard.press('Escape'); pg.wait_for_timeout(250); assert not vis(); pg.evaluate('document.activeElement.blur()')
+    print('使用须知悬停卡片 OK（延迟显示 / 悬停保持 / 延迟隐藏 / 聚焦 / Esc）')
     # 2. 越吃越满 + 打嗝
     pg.evaluate("async () => { const s = await import('/js/storage.js'); const t = ['会议又拖堂了','想换个工位','学点 Python','周报又写不完','领导画饼','想去旅行','加班到十点','想养只猫','中午吃啥','需求又改了','想早睡','买个人体工学椅','同事好吵','想学吉他','工资何时涨','咖啡喝太多','想辞职','周末去爬山']; const tg = ['rant','idea','heart','']; for (let i = 0; i < 16; i++) await s.saveNote(t[i], tg[i % 4]); }")
     pg.keyboard.press('Control+Alt+n'); drop('电脑又卡了', 'rant'); pg.wait_for_timeout(1200)

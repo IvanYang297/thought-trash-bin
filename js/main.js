@@ -10,7 +10,7 @@ import * as fill from './fill.js';
 import * as review from './review.js';
 import { initShortcuts } from './shortcuts.js';
 import * as cb from './custom-banner.js';
-import { renderHelp } from './help.js';
+import { initHelpPopover } from './help.js';
 
 const $ = s => document.querySelector(s);
 export function toast(msg, ms = 2200) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), ms); }
@@ -40,7 +40,7 @@ $('#btn-list').onclick = () => openPanel('list');
 $('#btn-review').onclick = async () => review.showReview(await store.listNotes());
 $('#btn-ai').onclick = () => openPanel('ai');
 $('#btn-settings').onclick = () => openPanel('settings');
-$('#btn-help').onclick = () => openPanel('help');
+initHelpPopover($('#btn-help'));
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
   if (document.getElementById('review')) return document.getElementById('review').remove();
@@ -48,10 +48,9 @@ document.addEventListener('keydown', e => {
 });
 async function refreshPanel() {
   if (!current) return;
-  $('#panel-title').textContent = { list: '想法列表', ai: 'AI 整理', settings: '设置', help: '使用须知' }[current];
+  $('#panel-title').textContent = { list: '想法列表', ai: 'AI 整理', settings: '设置' }[current];
   if (current === 'list') return renderList(body, async () => { trash.setCount(await store.countNotes()); fill.renderPile(await store.countUnsorted()); }, addBannerLine);
   if (current === 'ai') return renderAI();
-  if (current === 'help') return renderHelp(body);
   renderSettings();
 }
 async function pickedNotes() {

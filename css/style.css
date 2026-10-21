@@ -104,6 +104,14 @@ pre.result{white-space:pre-wrap;background:#fff;border:2px solid #ddd;padding:8p
 .bubble.flying{animation:none;translate:none;pointer-events:none;transition:transform .55s cubic-bezier(.5,-0.2,.7,.6),opacity .55s ease-in}
 .bubble.bounce-here{animation:nudge .5s cubic-bezier(.34,1.56,.64,1)}
 @keyframes nudge{30%{transform:translateY(12px)}60%{transform:translateY(-8px)}}
-#panel-body .help h3{margin:14px 0 4px;font-size:16px}
-#panel-body .help ul{margin:0;padding-left:20px;line-height:1.7}
-#panel-body .help kbd{background:#fff;border:2px solid #5a3e1b;border-bottom-width:3px;border-radius:6px;padding:0 5px;font-size:12px;font-family:inherit}
+
+/* 使用须知：悬停小卡片 */
+#help-pop{position:fixed;z-index:80;width:300px;max-height:min(70vh,520px);overflow:auto;background:#fffdf3;border:3px solid #5a3e1b;border-radius:14px;box-shadow:0 6px 18px rgba(59,42,20,.25);padding:10px 12px;font-size:12px;line-height:1.55;color:#3b2a14;opacity:0;visibility:hidden;transform:translateY(-4px);transition:opacity .15s ease,transform .15s ease,visibility 0s linear .15s;pointer-events:none}
+#help-pop.show{opacity:1;visibility:visible;transform:none;transition:opacity .15s ease,transform .15s ease;pointer-events:auto}
+#help-pop::before{content:"";position:absolute;top:-9px;right:28px;border:6px solid transparent;border-bottom:7px solid #5a3e1b;border-top:0}
+#help-pop .help-title{font-weight:bold;font-size:14px;margin-bottom:4px}
+#help-pop section{padding:4px 0;border-top:1px dashed #d8c7a3}
+#help-pop h4{margin:0 0 1px;font-size:12px}
+#help-pop p{margin:0}
+#help-pop kbd{background:#fff;border:1px solid #5a3e1b;border-bottom-width:2px;border-radius:4px;padding:0 3px;font-size:11px;font-family:inherit}
+#help-pop .help-foot{color:#9a7b4f;margin-top:4px;border-top:1px dashed #d8c7a3;padding-top:4px}
