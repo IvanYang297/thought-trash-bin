@@ -17,11 +17,20 @@ with sync_playwright() as p:
         pg.mouse.move(g['x'] + 20, g['y'] + 7); pg.mouse.down()
         pg.mouse.move(t['x'] + t['width'] / 2, t['y'] + t['height'] / 2, steps=15); pg.mouse.up()
         pg.wait_for_timeout(400)
+    # 空对话框：显示提示语、value 为空、拖进桶不保存并弹回
+    ph = pg.locator('.bubble textarea').first.get_attribute('placeholder')
+    assert ph and pg.locator('.bubble textarea').first.input_value() == ''
+    drop(''); pg.wait_for_timeout(400)
+    assert pg.text_content('#count') == '0' and pg.locator('.bubble').count() == 2
+    bb = pg.locator('.bubble').first.bounding_box(); t0 = pg.locator('#trash').bounding_box()
+    assert bb['y'] + bb['height'] < t0['y'], '空对话框应弹回'
+    print('空对话框提示语/不保存/弹回 OK:', ph)
+    assert pg.get_attribute('#btn-add', 'title') == '新建对话框'
     drop('老板又让我周末改方案，烦死了'); drop('想学做咖啡，下个月报个班')
     assert pg.text_content('#count') == '2', pg.text_content('#count')
     n = pg.evaluate("""() => new Promise(r => { const q = indexedDB.open('thought-trash-bin'); q.onsuccess = () => {
         const g = q.result.transaction('notes').objectStore('notes').getAll(); g.onsuccess = () => r(g.result); }; })""")
-    assert len(n) == 2 and any('咖啡' in x['text'] for x in n), n
+    assert len(n) == 2 and all(x['text'] not in ('', ph) for x in n) and any('咖啡' in x['text'] for x in n), n
     print('IndexedDB 保存 OK:', [x['text'] for x in n])
     for _ in range(5): pg.click('#trash', delay=10)
     pg.wait_for_timeout(1300)
@@ -30,7 +39,7 @@ with sync_playwright() as p:
     pg.locator('.scrap').evaluate_all('s => s.forEach(x => x.remove())')
     pg.dblclick('#trash'); pg.wait_for_timeout(1300)
     assert pg.locator('.scrap').count() == 2; print('双击爆炸 OK')
-    pg.mouse.click(250, 200); pg.keyboard.type('今天又开了三个会…'); pg.mouse.click(820, 380); pg.keyboard.type('周末想去爬山')
+    pg.mouse.click(250, 200); pg.keyboard.type('今天又开了三个会…'); pg.mouse.click(820, 380); pg.keyboard.type('周末想去爬山'); pg.mouse.click(560, 150); pg.mouse.click(5, 790)
     pg.wait_for_timeout(300)
     pg.screenshot(path=os.path.join(ROOT, 'docs', 'screenshot.png'))
     pg.click('#btn-list'); pg.fill('#search', '咖啡'); assert pg.locator('.note-item').count() == 1; print('搜索 OK')

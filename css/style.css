@@ -42,3 +42,8 @@ button:active{transform:translateY(2px);box-shadow:0 1px 0 #5a3e1b}
 pre.result{white-space:pre-wrap;background:#fff;border:2px solid #ddd;padding:8px;border-radius:8px}
 #toast{position:fixed;left:50%;top:110px;transform:translateX(-50%);background:#3b2a14;color:#fff;padding:6px 14px;border-radius:12px;opacity:0;transition:opacity .3s;z-index:60;pointer-events:none}
 #toast.show{opacity:1}
+
+.bubble textarea{color:#2b1d0e}
+.bubble textarea::placeholder{color:#9e9e9e;opacity:.6;font-style:italic}
+.bubble textarea:focus::placeholder{opacity:.35}
+.bubble.bounce{transition:left .5s cubic-bezier(.34,1.56,.64,1),top .5s cubic-bezier(.34,1.56,.64,1)}
