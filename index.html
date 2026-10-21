@@ -18,20 +18,25 @@
 <button id="btn-add" title="新建对话框（快捷键 N 或 Ctrl+Alt+N）">+</button>
 <div id="trash-wrap">
   <div id="trash" title="把对话框拖进来；双击或狂点有惊喜">
-    <svg viewBox="0 0 200 230" width="100%" height="100%" aria-hidden="true">
+    <svg viewBox="0 0 200 230" width="100%" height="100%" aria-hidden="true" overflow="visible">
+      <g id="trash-peek"></g>
       <g id="trash-lid">
         <rect x="70" y="8" width="60" height="16" rx="6" fill="#6b8f71" stroke="#2b3a2e" stroke-width="5"/>
         <rect x="14" y="22" width="172" height="26" rx="10" fill="#8fc19a" stroke="#2b3a2e" stroke-width="6"/>
       </g>
       <g id="trash-body">
         <path d="M28 56 H172 L158 220 H42 Z" fill="#a8d5b1" stroke="#2b3a2e" stroke-width="6" stroke-linejoin="round"/>
-        <g id="trash-pile"></g>
         <circle cx="78" cy="110" r="9" fill="#2b3a2e"/><circle cx="122" cy="110" r="9" fill="#2b3a2e"/>
-        <path id="trash-mouth" d="M78 145 Q100 165 122 145" fill="none" stroke="#2b3a2e" stroke-width="6" stroke-linecap="round"/>
+        <g id="trash-face">
+          <path class="brow" d="M66 92 L90 100 M134 92 L110 100" stroke="#2b3a2e" stroke-width="6" stroke-linecap="round"/>
+          <path class="mouth-happy" d="M78 145 Q100 165 122 145" fill="none" stroke="#2b3a2e" stroke-width="6" stroke-linecap="round"/>
+          <path class="mouth-sad" d="M80 156 Q100 138 120 156" fill="none" stroke="#2b3a2e" stroke-width="6" stroke-linecap="round"/>
+        </g>
         <line x1="70" y1="180" x2="72" y2="205" stroke="#2b3a2e" stroke-width="4"/>
         <line x1="100" y1="180" x2="100" y2="205" stroke="#2b3a2e" stroke-width="4"/>
         <line x1="130" y1="180" x2="128" y2="205" stroke="#2b3a2e" stroke-width="4"/>
       </g>
+      <g id="trash-burst"></g>
     </svg>
   </div>
   <div id="counter">已吃掉 <b id="count">0</b> 条</div>

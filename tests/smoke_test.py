@@ -10,6 +10,14 @@ with sync_playwright() as p:
     pg.on('console', lambda m: m.type == 'error' and errors.append(m.text))
     pg.on('pageerror', lambda e: errors.append(str(e)))
     pg.goto('http://127.0.0.1:8765/index.html'); pg.wait_for_selector('.bubble')
+    def face_ok():  # 脸（眼睛+嘴）不能被任何纸团盖住
+        r = pg.evaluate("""() => { const f = document.querySelector('#trash-face').getBoundingClientRect();
+          const hit = [...document.querySelectorAll('#trash-peek circle, #trash-burst circle')].filter(c => { const b = c.getBoundingClientRect();
+            return b.right > f.left && b.left < f.right && b.bottom > f.top && b.top < f.bottom; }); return hit.length; }""")
+        assert r == 0, f'{r} 个纸团盖住了脸'
+    def trash_shot(name):
+        t = pg.locator('#trash').bounding_box()
+        pg.screenshot(path=os.path.join(ROOT, 'docs', name), clip={'x': t['x'] - 140, 'y': t['y'] - 170, 'width': t['width'] + 280, 'height': t['height'] + 210})
     def drop(text, tag=None):
         bub = pg.locator('.bubble').first
         if tag: bub.locator(f'.tag-picker [data-tag={tag}]').click(force=True)
@@ -29,6 +37,9 @@ with sync_playwright() as p:
     assert pg.get_attribute('#btn-add', 'title').startswith('新建对话框')
     drop('老板又让我周末改方案，烦死了'); drop('想学做咖啡，下个月报个班', 'idea')
     assert pg.text_content('#count') == '2', pg.text_content('#count')
+    assert pg.get_attribute('#trash', 'data-state') == 'unhappy'
+    assert pg.locator('#trash .mouth-sad').is_visible() and not pg.locator('#trash .mouth-happy').is_visible()
+    face_ok(); pg.wait_for_timeout(1100); trash_shot('can-unhappy.png'); print('吃完变不开心 OK')
     n = pg.evaluate("""() => new Promise(r => { const q = indexedDB.open('thought-trash-bin'); q.onsuccess = () => {
         const g = q.result.transaction('notes').objectStore('notes').getAll(); g.onsuccess = () => r(g.result); }; })""")
     assert len(n) == 2 and all(x['text'] not in ('', ph) for x in n) and any('咖啡' in x['text'] for x in n), n
@@ -68,20 +79,32 @@ with sync_playwright() as p:
     assert pg.locator('.bubble').count() == c0 + 2 and 'abc' in pg.locator('.bubble textarea').nth(c0).input_value()
     pg.locator('.bubble').evaluate_all('bs => bs.forEach(b => b.remove())'); print('快捷键 OK')
     # 2. 越吃越满 + 打嗝
-    lv0 = int(pg.get_attribute('#trash', 'data-level'))
     pg.evaluate("async () => { const s = await import('/js/storage.js'); const t = ['会议又拖堂了','想换个工位','学点 Python','周报又写不完','领导画饼','想去旅行','加班到十点','想养只猫','中午吃啥','需求又改了','想早睡','买个人体工学椅','同事好吵','想学吉他','工资何时涨','咖啡喝太多','想辞职','周末去爬山']; const tg = ['rant','idea','heart','']; for (let i = 0; i < 17; i++) await s.saveNote(t[i], tg[i % 4]); }")
     pg.keyboard.press('Control+Alt+n'); drop('电脑又卡了', 'rant'); pg.wait_for_timeout(1200)
-    assert pg.text_content('#count') == '20' and pg.get_attribute('#trash', 'data-level') == '5' and lv0 < 5
+    assert pg.text_content('#count') == '20' and pg.get_attribute('#trash', 'data-state') == 'ajar'
     assert 'burp' in pg.get_attribute('#trash', 'class') and 'AI整理' in pg.text_content('#toast')
-    pg.wait_for_timeout(150); pg.screenshot(path=os.path.join(ROOT, 'docs', 'full-can.png'))
-    print('越吃越满 + 打嗝 OK，纸堆层级', lv0, '-> 5')
+    pg.wait_for_timeout(1300)
+    assert pg.locator('#trash-peek circle').count() >= 3 and pg.locator('#trash-burst circle').count() == 0
+    ang = pg.evaluate("() => new DOMMatrix(getComputedStyle(document.querySelector('#trash-lid')).transform).b")
+    assert ang < -0.05, ang  # 盖子翘起
+    face_ok(); trash_shot('can-20.png')
+    print('越吃越满 20：盖子翘起 + 纸团挤出 + 打嗝 OK')
+    pg.evaluate("async () => { const s = await import('/js/storage.js'); for (let i = 0; i < 80; i++) await s.saveNote('第 ' + i + ' 条乱想', ''); (await import('/js/fill.js')).renderPile(await s.countUnsorted()); (await import('/js/trashbin.js')).setCount(await s.countNotes()); }")
+    assert pg.get_attribute('#trash', 'data-state') == 'struggle' and pg.locator('#trash-burst circle').count() >= 8
+    a = []
+    for _ in range(12): a.append(pg.evaluate("() => new DOMMatrix(getComputedStyle(document.querySelector('#trash-lid')).transform).f")); pg.wait_for_timeout(100)
+    assert max(a) - min(a) > 8, a  # 盖子上下拉锯
+    face_ok(); pg.wait_for_timeout(400); trash_shot('can-100.png')
+    print('100 条：纸团喷出 + 盖子拉锯 OK')
+    pg.evaluate("async () => { const s = await import('/js/storage.js'); const ns = await s.listNotes(); await s.markOrganized(ns.filter(n => n.text.startsWith('第 ')).map(n => n.id)); (await import('/js/fill.js')).renderPile(await s.countUnsorted()); }")
+    assert pg.get_attribute('#trash', 'data-state') == 'ajar'
     # 3. 本周回顾卡片 + 下载 PNG
     pg.click('#btn-review'); pg.wait_for_selector('#review canvas')
     with pg.expect_download() as dl: pg.click('#review-dl')
     dl.value.save_as(os.path.join(ROOT, 'docs', 'review-card.png'))
     assert os.path.getsize(os.path.join(ROOT, 'docs', 'review-card.png')) > 10000; pg.click('#review-close')
     st = pg.evaluate("async () => { const r = await import('/js/review.js'), s = await import('/js/storage.js'); return r.weekStats(await s.listNotes()); }")
-    assert st['total'] == 20 and st['by'] == {'rant': 6, 'idea': 5, 'heart': 4, 'none': 5}, st
+    assert st['total'] == 100 and st['by'] == {'rant': 6, 'idea': 5, 'heart': 4, 'none': 85}, st
     fri = b.new_context(viewport={'width': 1280, 'height': 800}); fp2 = fri.new_page()
     fp2.on('pageerror', lambda e: errors.append(str(e)))
     fp2.clock.set_fixed_time('2026-10-23T10:00:00')  # 周五
@@ -94,6 +117,7 @@ with sync_playwright() as p:
     fp.goto('http://127.0.0.1:8765/index.html'); fp.wait_for_selector('.bubble')
     vals = fp.locator('.bubble textarea').evaluate_all('ts => ts.map(t => [t.value, t.placeholder])')
     assert vals and all(v == '' and ph for v, ph in vals), vals
+    assert fp.get_attribute('#trash', 'data-state') == 'happy' and fp.locator('#trash .mouth-happy').is_visible()
     fp.evaluate('document.activeElement.blur()'); fp.wait_for_timeout(500)
     fp.screenshot(path=os.path.join(ROOT, 'docs', 'screenshot.png'))
     print('默认状态全为空提示语 OK:', [ph for _, ph in vals])
