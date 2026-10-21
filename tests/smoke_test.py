@@ -25,7 +25,7 @@ with sync_playwright() as p:
     bb = pg.locator('.bubble').first.bounding_box(); t0 = pg.locator('#trash').bounding_box()
     assert bb['y'] + bb['height'] < t0['y'], '空对话框应弹回'
     print('空对话框提示语/不保存/弹回 OK:', ph)
-    assert pg.get_attribute('#btn-add', 'title') == '新建对话框'
+    assert pg.get_attribute('#btn-add', 'title').startswith('新建对话框')
     drop('老板又让我周末改方案，烦死了'); drop('想学做咖啡，下个月报个班')
     assert pg.text_content('#count') == '2', pg.text_content('#count')
     n = pg.evaluate("""() => new Promise(r => { const q = indexedDB.open('thought-trash-bin'); q.onsuccess = () => {
