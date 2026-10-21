@@ -8,6 +8,8 @@ import { renderList, selected } from './list.js';
 import { explode } from './easter-eggs.js';
 import * as fill from './fill.js';
 import * as review from './review.js';
+import { initShortcuts } from './shortcuts.js';
+import * as cb from './custom-banner.js';
 
 const $ = s => document.querySelector(s);
 export function toast(msg, ms = 2200) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), ms); }
@@ -25,6 +27,8 @@ initBubbles($('#stage'), {
   },
 });
 $('#btn-add').onclick = () => createBubble();
+initShortcuts(() => createBubble());
+function addBannerLine(t) { if (cb.addCustom(t)) { initBanner(); toast('已加到横幅 ✍️'); } else toast('这句已经在横幅里了（或为空）'); }
 
 const panel = $('#panel'), body = $('#panel-body');
 let current = null;
@@ -37,7 +41,7 @@ $('#btn-settings').onclick = () => openPanel('settings');
 async function refreshPanel() {
   if (!current) return;
   $('#panel-title').textContent = { list: '想法列表', ai: 'AI 整理', settings: '设置' }[current];
-  if (current === 'list') return renderList(body, async () => { trash.setCount(await store.countNotes()); fill.renderPile(await store.countUnsorted()); });
+  if (current === 'list') return renderList(body, async () => { trash.setCount(await store.countNotes()); fill.renderPile(await store.countUnsorted()); }, addBannerLine);
   if (current === 'ai') return renderAI();
   renderSettings();
 }
@@ -68,12 +72,18 @@ function renderSettings() {
   body.innerHTML = `<h3>📁 保存位置</h3>
     <p>${sf ? (store.folderName() ? `当前文件夹：<b>${store.folderName()}</b>` : store.needsReauth() ? '需要重新授权上次的文件夹' : '还没选文件夹，目前存在浏览器里') : '当前浏览器不支持选择文件夹，想法存在浏览器里，可在列表中导出 .md。'}</p>
     ${sf ? `<div class="row"><button id="pick">选择文件夹</button>${store.needsReauth() ? '<button id="reauth">重新授权</button>' : ''}</div>` : ''}
+    <h3>📢 我的横幅</h3>
+    <div class="row"><input id="banner-input" placeholder="写一句你自己的吐槽…" maxlength="60" style="flex:1;font:inherit;padding:6px;border:2px solid #5a3e1b;border-radius:8px"><button id="banner-add">添加</button></div>
+    <div id="banner-mine">${cb.getCustom().map((l, i) => `<div class="note-item"><span class="txt">✍️ ${l.replace(/</g, '&lt;')}</span><button data-i="${i}" title="移除">移除</button></div>`).join('') || '<p style="font-size:12px;color:#888">还没有自定义的句子，默认文案照常播放。</p>'}</div>
+    <h3>⌨️ 快捷键</h3><p style="font-size:13px">N（不在输入时）或 Ctrl+Alt+N：新建对话框</p>
     <h3>🔑 DeepSeek 密钥</h3>
     <p style="font-size:12px;color:#888">只保存在本浏览器（localStorage），不会上传到别处，仅在整理时发给 DeepSeek。</p>
     <input type="password" id="key" placeholder="sk-..." value="${ai.getKey()}">
     <div class="row"><button id="save-key">保存密钥</button><button id="clear-key">清除密钥</button></div>`;
   body.querySelector('#pick')?.addEventListener('click', async () => { try { await store.pickFolder(); toast('文件夹已选好，之后的想法会存成 .md'); renderSettings(); } catch {} });
   body.querySelector('#reauth')?.addEventListener('click', async () => { if (await store.reauthorize()) toast('已重新授权'); renderSettings(); });
+  body.querySelector('#banner-add').onclick = () => { addBannerLine(body.querySelector('#banner-input').value); renderSettings(); };
+  body.querySelectorAll('#banner-mine button').forEach(btn => btn.onclick = () => { cb.removeCustom(cb.getCustom()[btn.dataset.i]); initBanner(); renderSettings(); toast('已从横幅移除'); });
   body.querySelector('#save-key').onclick = () => { ai.setKey(body.querySelector('#key').value); toast('密钥已保存'); };
   body.querySelector('#clear-key').onclick = () => { ai.setKey(''); renderSettings(); toast('密钥已清除'); };
 }

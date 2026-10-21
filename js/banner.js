@@ -9,8 +9,16 @@ export const BANNER_LINES = [
   '加班不可怕，可怕的是没有加班费', '我和闹钟之间，必须有一个先离职', '“你先做着，后面再说”，后面就没有后面了',
   '咖啡续命，奶茶回血，下班复活', '把烦恼丢进垃圾桶，明天又是一条好汉',
 ];
-export function initBanner(el) {
-  const track = el.querySelector('#banner-track');
-  const html = BANNER_LINES.map(t => `<span>💢 ${t}</span>`).join('');
+import { getCustom } from './custom-banner.js';
+const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+// 默认文案与自定义文案交错混排
+export function allLines() {
+  const out = [...BANNER_LINES], cu = getCustom();
+  cu.forEach((l, i) => out.splice(Math.min(out.length, (i + 1) * 3 + i), 0, l));
+  return out;
+}
+export function initBanner(el = document.getElementById('banner')) {
+  const track = el.querySelector('#banner-track'), cu = getCustom();
+  const html = allLines().map(t => `<span class="${cu.includes(t) ? 'mine' : ''}">${cu.includes(t) ? '✍️' : '💢'} ${esc(t)}</span>`).join('');
   track.innerHTML = html + html; // 复制一份，实现无缝循环
 }
