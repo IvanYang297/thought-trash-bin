@@ -21,7 +21,7 @@ initBubbles($('#stage'), {
   onEmpty: () => toast('空的对话框，桶不吃哦～先写点什么吧'),
   onDrop: async (b, text, tag) => {
     b.remove(); trash.chew();
-    try { const n = await store.saveNote(text, tag); trash.increment(); toast(n.inFolder ? '嚼嚼嚼…已存进文件夹 📁' : '嚼嚼嚼…已存在浏览器里');
+    try { const n = await store.saveNote(text, tag); trash.setCount(await store.countNotes()); toast(n.inFolder ? '嚼嚼嚼…已存进文件夹 📁' : '嚼嚼嚼…已存在浏览器里');
       const u = await store.countUnsorted(); fill.renderPile(u); if (fill.shouldBurp(u)) setTimeout(() => fill.burp(toast), 1000); refreshPanel(); }
     catch (e) { console.error(e); toast('保存失败：' + e.message); }
   },

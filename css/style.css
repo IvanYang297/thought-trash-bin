@@ -69,3 +69,4 @@ pre.result{white-space:pre-wrap;background:#fff;border:2px solid #ddd;padding:8p
 #banner-track span.mine{color:#c0392b}
 .note-item .acts{display:flex;flex-direction:column;gap:4px}
 .note-item .acts button{font-size:12px;padding:2px 6px}
+#panel{top:100px;height:calc(100% - 100px);border-top:4px solid #5a3e1b;border-top-left-radius:16px}
