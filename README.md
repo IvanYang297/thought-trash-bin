@@ -49,7 +49,7 @@ js/easter-eggs.js   纸片爆炸彩蛋
 js/tags.js          心情标签
 js/fill.js          越吃越满 / 打嗝
 js/face.js          垃圾桶表情平滑过渡
-js/paper.js         皱巴巴纸团图形
+assets/can/         垃圾桶美术（四个状态的 SVG / PNG）
 js/review.js        本周回顾卡片
 js/shortcuts.js     快捷键
 js/custom-banner.js 自定义横幅

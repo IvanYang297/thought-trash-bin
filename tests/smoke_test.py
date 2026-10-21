@@ -11,8 +11,8 @@ with sync_playwright() as p:
     pg.on('pageerror', lambda e: errors.append(str(e)))
     pg.goto('http://127.0.0.1:8765/index.html'); pg.wait_for_selector('.bubble')
     def face_ok():  # 脸（眼睛+嘴）不能被任何纸团盖住
-        r = pg.evaluate("""() => { const f = document.querySelector('#trash-face').getBoundingClientRect();
-          const hit = [...document.querySelectorAll('#trash-peek .paper, #trash-burst .paper')].filter(c => { const b = c.getBoundingClientRect();
+        r = pg.evaluate("""() => { const f = document.querySelector('#face').getBoundingClientRect();
+          const hit = [...document.querySelectorAll('#peek .paper, #overflow .paper, .spray .paper')].filter(c => { const b = c.getBoundingClientRect();
             return b.right > f.left && b.left < f.right && b.bottom > f.top && b.top < f.bottom; }); return hit.length; }""")
         assert r == 0, f'{r} 个纸团盖住了脸'
     def trash_shot(name):
@@ -57,8 +57,9 @@ with sync_playwright() as p:
     pg.wait_for_timeout(1000)
     assert pg.text_content('#count') == '2', pg.text_content('#count')
     assert pg.get_attribute('#trash', 'data-state') == 'unhappy'
-    assert float(pg.get_attribute('#trash', 'data-mood')) == 1 and 'Q100.0 138.0' in pg.get_attribute('#trash-mouth', 'd')
-    assert pg.get_attribute('#brow-l', 'opacity') == '1' and float(pg.get_attribute('#eye-l', 'ry')) < 6
+    assert float(pg.get_attribute('#trash', 'data-mood')) == 1 and 'Q120.0 174.0' in pg.get_attribute('#mouth-smile', 'd')
+    assert pg.evaluate("getComputedStyle(document.querySelector('#brows')).opacity") == '1' and pg.evaluate("getComputedStyle(document.querySelector('#sweat')).opacity") == '1'
+    assert abs(pg.evaluate("new DOMMatrix(getComputedStyle(document.querySelector('#eye-l')).transform).d") - 0.6) < 0.01
     face_ok(); pg.wait_for_timeout(1100); trash_shot('can-unhappy.png'); print('吃完变不开心 OK')
     n = pg.evaluate("""() => new Promise(r => { const q = indexedDB.open('thought-trash-bin'); q.onsuccess = () => {
         const g = q.result.transaction('notes').objectStore('notes').getAll(); g.onsuccess = () => r(g.result); }; })""")
@@ -104,16 +105,23 @@ with sync_playwright() as p:
     assert pg.text_content('#count') == '20' and pg.get_attribute('#trash', 'data-state') == 'ajar'
     assert 'burp' in pg.get_attribute('#trash', 'class') and 'AI整理' in pg.text_content('#toast')
     pg.wait_for_timeout(1300)
-    assert pg.locator('#trash-peek .paper').count() >= 3 and pg.locator('#trash-burst .paper').count() == 0
-    ang = pg.evaluate("() => new DOMMatrix(getComputedStyle(document.querySelector('#trash-lid')).transform).b")
+    assert pg.locator('#peek .paper').count() == 5 and pg.locator('#peek .paper').first.is_visible() and not pg.locator('.spray .paper').first.is_visible()
+    ang = pg.evaluate("() => new DOMMatrix(getComputedStyle(document.querySelector('#lid')).transform).b")
     assert ang < -0.05, ang  # 盖子翘起
     face_ok(); trash_shot('can-20.png')
     print('越吃越满 20：盖子翘起 + 纸团挤出 + 打嗝 OK')
     pg.evaluate("async () => { const s = await import('/js/storage.js'); for (let i = 0; i < 80; i++) await s.saveNote('第 ' + i + ' 条乱想', ''); (await import('/js/fill.js')).renderPile(await s.countUnsorted()); (await import('/js/trashbin.js')).setCount(await s.countNotes()); }")
-    assert pg.get_attribute('#trash', 'data-state') == 'struggle' and pg.locator('#trash-burst .paper').count() >= 8
+    assert pg.get_attribute('#trash', 'data-state') == 'struggle' and pg.locator('.spray .paper').count() == 8 and pg.locator('#overflow .paper').first.is_visible()
     a = []
-    for _ in range(12): a.append(pg.evaluate("() => new DOMMatrix(getComputedStyle(document.querySelector('#trash-lid')).transform).f")); pg.wait_for_timeout(100)
-    assert max(a) - min(a) > 8, a  # 盖子上下拉锯
+    sp, sh = [], []
+    for _ in range(12):
+        a.append(pg.evaluate("() => new DOMMatrix(getComputedStyle(document.querySelector('.lid-fight')).transform).b"))  # 盖子角度
+        sp.append(pg.evaluate("() => { const b = document.querySelector('.spray .paper').getBoundingClientRect(); return [Math.round(b.x), Math.round(b.y), +getComputedStyle(document.querySelector('.spray .paper')).opacity]; }"))
+        sh.append(pg.evaluate("() => new DOMMatrix(getComputedStyle(document.querySelector('.can')).transform).e"))
+        pg.wait_for_timeout(100)
+    assert max(a) - min(a) > 0.3, a  # 盖子拉锯（rotate 约 -1° ~ -30°）
+    assert len({tuple(x[:2]) for x in sp}) > 5 and max(x[2] for x in sp) > 0.5, sp  # 纸团真的在飞
+    assert max(sh) - min(sh) > 2, sh  # 整桶在抖
     face_ok(); pg.wait_for_timeout(400); trash_shot('can-100.png')
     print('100 条：纸团喷出 + 盖子拉锯 OK')
     pg.evaluate("async () => { const s = await import('/js/storage.js'); const ns = await s.listNotes(); await s.markOrganized(ns.filter(n => n.text.startsWith('第 ')).map(n => n.id)); (await import('/js/fill.js')).renderPile(await s.countUnsorted()); }")
@@ -145,7 +153,7 @@ with sync_playwright() as p:
     fp.goto('http://127.0.0.1:8765/index.html'); fp.wait_for_selector('.bubble')
     vals = fp.locator('.bubble textarea').evaluate_all('ts => ts.map(t => [t.value, t.placeholder])')
     assert vals and all(v == '' and ph for v, ph in vals), vals
-    assert fp.get_attribute('#trash', 'data-state') == 'happy' and float(fp.get_attribute('#trash', 'data-mood')) == 0 and 'Q100.0 165.0' in fp.get_attribute('#trash-mouth', 'd')
+    assert fp.get_attribute('#trash', 'data-state') == 'happy' and float(fp.get_attribute('#trash', 'data-mood')) == 0 and 'Q120.0 192.0' in fp.get_attribute('#mouth-smile', 'd')
     fp.evaluate('document.activeElement.blur()'); fp.wait_for_timeout(500)
     fp.screenshot(path=os.path.join(ROOT, 'docs', 'screenshot.png'))
     print('默认状态全为空提示语 OK:', [ph for _, ph in vals])
