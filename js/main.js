@@ -10,6 +10,7 @@ import * as fill from './fill.js';
 import * as review from './review.js';
 import { initShortcuts } from './shortcuts.js';
 import * as cb from './custom-banner.js';
+import { renderHelp } from './help.js';
 
 const $ = s => document.querySelector(s);
 export function toast(msg, ms = 2200) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), ms); }
@@ -17,7 +18,8 @@ export function toast(msg, ms = 2200) { const t = $('#toast'); t.textContent = m
 initBanner($('#banner'));
 trash.initTrash({ onBurst: async () => explode(await store.listNotes(), trash.trashCenter()) });
 initBubbles($('#stage'), {
-  isOverTrash: trash.isOverTrash, onHover: trash.setHover,
+  getTrashRect: trash.getTrashRect, inTrash: trash.inTrash, trashCenter: trash.trashCenter, onHover: trash.setHover,
+  onLimit: () => toast('最多 10 个对话框，先丢几个进桶吧～'),
   onEmpty: () => toast('空的对话框，桶不吃哦～先写点什么吧'),
   onDrop: async (b, text, tag) => {
     b.remove(); trash.chew();
@@ -38,11 +40,18 @@ $('#btn-list').onclick = () => openPanel('list');
 $('#btn-review').onclick = async () => review.showReview(await store.listNotes());
 $('#btn-ai').onclick = () => openPanel('ai');
 $('#btn-settings').onclick = () => openPanel('settings');
+$('#btn-help').onclick = () => openPanel('help');
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (document.getElementById('review')) return document.getElementById('review').remove();
+  if (current) { panel.classList.add('hidden'); current = null; }
+});
 async function refreshPanel() {
   if (!current) return;
-  $('#panel-title').textContent = { list: '想法列表', ai: 'AI 整理', settings: '设置' }[current];
+  $('#panel-title').textContent = { list: '想法列表', ai: 'AI 整理', settings: '设置', help: '使用须知' }[current];
   if (current === 'list') return renderList(body, async () => { trash.setCount(await store.countNotes()); fill.renderPile(await store.countUnsorted()); }, addBannerLine);
   if (current === 'ai') return renderAI();
+  if (current === 'help') return renderHelp(body);
   renderSettings();
 }
 async function pickedNotes() {

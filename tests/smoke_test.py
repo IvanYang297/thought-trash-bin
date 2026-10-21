@@ -2,14 +2,14 @@
 import http.server, threading, functools, os, sys
 from playwright.sync_api import sync_playwright
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-srv = http.server.ThreadingHTTPServer(('127.0.0.1', 8765), functools.partial(http.server.SimpleHTTPRequestHandler, directory=ROOT))
+srv = http.server.ThreadingHTTPServer(('127.0.0.1', 8766), functools.partial(http.server.SimpleHTTPRequestHandler, directory=ROOT))
 threading.Thread(target=srv.serve_forever, daemon=True).start()
 errors = []
 with sync_playwright() as p:
     b = p.chromium.launch(); pg = b.new_page(viewport={'width': 1280, 'height': 800})
     pg.on('console', lambda m: m.type == 'error' and errors.append(m.text))
     pg.on('pageerror', lambda e: errors.append(str(e)))
-    pg.goto('http://127.0.0.1:8765/index.html'); pg.wait_for_selector('.bubble')
+    pg.goto('http://127.0.0.1:8766/index.html'); pg.wait_for_selector('.bubble')
     def face_ok():  # 脸（眼睛+嘴）不能被任何纸团盖住
         r = pg.evaluate("""() => { const f = document.querySelector('#face').getBoundingClientRect();
           const hit = [...document.querySelectorAll('#peek .paper, #overflow .paper, .spray .paper')].filter(c => { const b = c.getBoundingClientRect();
@@ -99,8 +99,46 @@ with sync_playwright() as p:
     pg.keyboard.type('abc'); pg.keyboard.press('Control+Alt+n')  # 在输入框里按 N 不新建，Ctrl+Alt+N 照样新建
     assert pg.locator('.bubble').count() == c0 + 2 and 'abc' in pg.locator('.bubble textarea').nth(c0).input_value()
     pg.locator('.bubble').evaluate_all('bs => bs.forEach(b => b.remove())'); print('快捷键 OK')
+    # 对话框上限 10 个
+    for _ in range(12): pg.click('#btn-add')
+    assert pg.locator('.bubble').count() == 10 and '最多 10 个' in pg.text_content('#toast')
+    pg.evaluate('document.activeElement.blur()'); pg.keyboard.press('n'); pg.keyboard.press('Control+Alt+n'); pg.mouse.click(300, 420)
+    assert pg.locator('.bubble').count() == 10; print('对话框上限 10 个 OK')
+    pg.locator('.bubble').evaluate_all('bs => bs.forEach(b => b.remove())')
+    # 流畅拖拽：拖动中只改 transform、暂停漂浮，松手后落到 left/top
+    pg.click('#btn-add'); bub = pg.locator('.bubble').last; bub.locator('textarea').fill('拖着走')
+    left0 = bub.evaluate('b => b.style.left'); g = bub.locator('.grip').bounding_box()
+    pg.mouse.move(g['x'] + 20, g['y'] + 7); pg.mouse.down(); pg.mouse.move(g['x'] + 120, g['y'] + 47, steps=8); pg.wait_for_timeout(50)
+    st = bub.evaluate("b => [b.style.left, b.style.transform, getComputedStyle(b).animationName]")
+    assert st[0] == left0 and 'translate3d(100px, 40px' in st[1] and st[2] == 'none', st
+    pg.mouse.up()
+    st = bub.evaluate("b => [parseFloat(b.style.left), b.style.transform]")
+    assert abs(st[0] - (float(left0[:-2]) + 100)) < 1 and st[1] == '', st
+    calls = pg.evaluate("""() => new Promise(res => { const b = document.querySelector('.bubble'), g = b.querySelector('.grip').getBoundingClientRect();
+      let n = 0; const orig = Element.prototype.getBoundingClientRect; Element.prototype.getBoundingClientRect = function () { n++; return orig.call(this); };
+      const ev = (t, x, y) => b.dispatchEvent(new PointerEvent(t, { bubbles: true, clientX: x, clientY: y, pointerId: 1, button: 0 }));
+      ev('pointerdown', g.x + 5, g.y + 5); n = 0; for (let i = 1; i <= 30; i++) ev('pointermove', g.x + 5 + i, g.y + 5);
+      requestAnimationFrame(() => { ev('pointerup', g.x + 35, g.y + 5); Element.prototype.getBoundingClientRect = orig; res(n); }); })""")
+    assert calls == 0, f'拖动中调用了 {calls} 次 getBoundingClientRect'
+    print('流畅拖拽 OK（transform + rAF，拖动中不量布局）')
+    # 三连击飞进桶
+    c0 = int(pg.text_content('#count'))
+    pg.locator('.bubble textarea').last.click(click_count=3, force=True); pg.wait_for_timeout(900)
+    assert int(pg.text_content('#count')) == c0 + 1 and pg.locator('.bubble').count() == 0
+    pg.click('#btn-add'); e = pg.locator('.bubble').last
+    box = e.bounding_box(); e.click(position={'x': 6, 'y': box['height'] - 8}, click_count=3, force=True); pg.wait_for_timeout(700)
+    assert int(pg.text_content('#count')) == c0 + 1 and pg.locator('.bubble').count() == 1 and '桶不吃' in pg.text_content('#toast')
+    pg.locator('.bubble').evaluate_all('bs => bs.forEach(b => b.remove())')
+    n2 = pg.evaluate("""() => new Promise(r => { const q = indexedDB.open('thought-trash-bin'); q.onsuccess = () => {
+        const g = q.result.transaction('notes').objectStore('notes').getAll(); g.onsuccess = () => r(g.result.map(x => x.text)); }; })""")
+    assert '拖着走' in n2; print('三连击飞进桶 OK（空的弹一下不保存）')
+    # 使用须知 + Esc
+    pg.click('#btn-help'); h = pg.text_content('#panel-body')
+    for k in ['Ctrl', 'Alt', '10', '三下', '双击', '连点 5 下', '心情标签', '搜索', 'AI', '复制整理提示词', '本周回顾', '横幅', 'Esc']: assert k in h, k
+    pg.screenshot(path=os.path.join(ROOT, 'docs', 'help.png'))
+    pg.keyboard.press('Escape'); assert pg.locator('#panel.hidden').count() == 1; print('使用须知 + Esc OK')
     # 2. 越吃越满 + 打嗝
-    pg.evaluate("async () => { const s = await import('/js/storage.js'); const t = ['会议又拖堂了','想换个工位','学点 Python','周报又写不完','领导画饼','想去旅行','加班到十点','想养只猫','中午吃啥','需求又改了','想早睡','买个人体工学椅','同事好吵','想学吉他','工资何时涨','咖啡喝太多','想辞职','周末去爬山']; const tg = ['rant','idea','heart','']; for (let i = 0; i < 17; i++) await s.saveNote(t[i], tg[i % 4]); }")
+    pg.evaluate("async () => { const s = await import('/js/storage.js'); const t = ['会议又拖堂了','想换个工位','学点 Python','周报又写不完','领导画饼','想去旅行','加班到十点','想养只猫','中午吃啥','需求又改了','想早睡','买个人体工学椅','同事好吵','想学吉他','工资何时涨','咖啡喝太多','想辞职','周末去爬山']; const tg = ['rant','idea','heart','']; for (let i = 0; i < 16; i++) await s.saveNote(t[i], tg[i % 4]); }")
     pg.keyboard.press('Control+Alt+n'); drop('电脑又卡了', 'rant'); pg.wait_for_timeout(1200)
     assert pg.text_content('#count') == '20' and pg.get_attribute('#trash', 'data-state') == 'ajar'
     assert 'burp' in pg.get_attribute('#trash', 'class') and 'AI整理' in pg.text_content('#toast')
@@ -132,7 +170,7 @@ with sync_playwright() as p:
     dl.value.save_as(os.path.join(ROOT, 'docs', 'review-card.png'))
     assert os.path.getsize(os.path.join(ROOT, 'docs', 'review-card.png')) > 10000; pg.click('#review-close')
     st = pg.evaluate("async () => { const r = await import('/js/review.js'), s = await import('/js/storage.js'); return r.weekStats(await s.listNotes()); }")
-    assert st['total'] == 100 and st['by'] == {'rant': 6, 'idea': 5, 'heart': 4, 'none': 85}, st
+    assert st['total'] == 100 and st['by'] == {'rant': 5, 'idea': 5, 'heart': 4, 'none': 86}, st
     # 反向：全部整理完 -> 平滑变回笑脸
     pg.evaluate("async () => { const s = await import('/js/storage.js'); await s.markOrganized((await s.listNotes()).map(n => n.id)); (await import('/js/fill.js')).renderPile(0); }")
     back = []
@@ -144,13 +182,13 @@ with sync_playwright() as p:
     fri = b.new_context(viewport={'width': 1280, 'height': 800}); fp2 = fri.new_page()
     fp2.on('pageerror', lambda e: errors.append(str(e)))
     fp2.clock.set_fixed_time('2026-10-23T10:00:00')  # 周五
-    fp2.goto('http://127.0.0.1:8765/index.html'); fp2.wait_for_selector('#review canvas')
+    fp2.goto('http://127.0.0.1:8766/index.html'); fp2.wait_for_selector('#review canvas')
     fp2.reload(); fp2.wait_for_selector('.bubble'); fp2.wait_for_timeout(500); assert fp2.locator('#review').count() == 0
     fri.close(); print('本周回顾 OK（统计 / 下载 PNG / 周五自动弹一次）', st)
     # 默认状态截图：全新上下文（无存储），所有对话框为空、只显示淡色提示语
     ctx = b.new_context(viewport={'width': 1280, 'height': 800}); fp = ctx.new_page()
     fp.on('pageerror', lambda e: errors.append(str(e)))
-    fp.goto('http://127.0.0.1:8765/index.html'); fp.wait_for_selector('.bubble')
+    fp.goto('http://127.0.0.1:8766/index.html'); fp.wait_for_selector('.bubble')
     vals = fp.locator('.bubble textarea').evaluate_all('ts => ts.map(t => [t.value, t.placeholder])')
     assert vals and all(v == '' and ph for v, ph in vals), vals
     assert fp.get_attribute('#trash', 'data-state') == 'happy' and float(fp.get_attribute('#trash', 'data-mood')) == 0 and 'Q120.0 192.0' in fp.get_attribute('#mouth-smile', 'd')

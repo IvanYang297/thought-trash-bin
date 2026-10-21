@@ -10,10 +10,12 @@ export function initTrash(o) {
     if (clicks.length >= 5) { clicks = []; burst(); }
   });
 }
-export function isOverTrash(x, y) {
-  const r = el.getBoundingClientRect(), m = 30;
+export const getTrashRect = () => el.getBoundingClientRect();
+export function inTrash(r, x, y) {
+  const m = 30;
   return x > r.left - m && x < r.right + m && y > r.top - m && y < r.bottom + m;
 }
+export const isOverTrash = (x, y) => inTrash(getTrashRect(), x, y);
 export const setHover = on => el.classList.toggle('hover', on);
 export function chew() { el.classList.remove('chew'); void el.offsetWidth; el.classList.add('chew'); setTimeout(() => el.classList.remove('chew'), 1000); }
 export function setCount(v) { n = v; countEl.textContent = n; }
