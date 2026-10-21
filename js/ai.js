@@ -4,6 +4,8 @@ const KEY = 'ttb.deepseekKey';
 export const getKey = () => localStorage.getItem(KEY) || '';
 export const setKey = k => k ? localStorage.setItem(KEY, k.trim()) : localStorage.removeItem(KEY);
 
+export const formatNotes = notes => notes.map((n, i) => `${i + 1}. [${fmtFull(n.createdAt)}] ${n.text}`).join('\n');
+
 export function buildPrompt(notes) {
   return `你是一位温柔又靠谱的个人效率教练。下面是我随手丢进「思绪垃圾桶」的零散想法、吐槽和心里话，内容可能很乱、很情绪化。
 请帮我整理成可执行的计划，要求：
@@ -15,7 +17,7 @@ export function buildPrompt(notes) {
 6. 用 Markdown 输出，标题清晰，不要编造我没提到的事实。
 
 我的想法如下：
-${notes.map((n, i) => `${i + 1}. [${fmtFull(n.createdAt)}] ${n.text}`).join('\n')}`;
+${formatNotes(notes)}`;
 }
 
 export async function organize(notes) {
@@ -31,8 +33,8 @@ export async function organize(notes) {
   const j = await r.json();
   return j.choices?.[0]?.message?.content || '（AI 没有返回内容）';
 }
-export async function copyPrompt(notes) {
-  const text = buildPrompt(notes);
+export const copyPrompt = notes => copyText(buildPrompt(notes));
+export async function copyText(text) {
   try { await navigator.clipboard.writeText(text); }
   catch { const t = document.createElement('textarea'); t.value = text; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
 }

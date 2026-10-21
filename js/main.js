@@ -1,3 +1,4 @@
+import { buildMysticPrompt } from './mystic-prompt.js';
 // 入口：把各模块串起来。新功能建议新建一个模块文件，再在这里接上。
 import { initBanner } from './banner.js';
 import { initBubbles, createBubble } from './bubbles.js';
@@ -85,9 +86,10 @@ async function pickedNotes() {
 async function renderAI() {
   const notes = await pickedNotes();
   body.innerHTML = `<p>将整理 <b>${notes.length}</b> 条想法（${selected.size ? '已勾选的' : '全部；可在「想法列表」里勾选'}）。</p>
-    <div class="row"><button id="go">✨ 用 DeepSeek 整理</button><button id="copy">📋 一键复制整理提示词</button></div>
+    <div class="row"><button id="go">✨ 用 DeepSeek 整理</button><button id="copy">📋 一键复制整理提示词</button><button id="mystic">🔮 复制玄学解读提示词</button></div>
     <p style="font-size:12px;color:#888">没有密钥？复制提示词后贴到豆包或 WorkBuddy 里用。</p><div id="out"></div>`;
   body.querySelector('#copy').onclick = async () => { await ai.copyPrompt(notes); toast('提示词已复制，去粘贴吧～'); };
+  body.querySelector('#mystic').onclick = async () => { await ai.copyText(buildMysticPrompt(notes)); toast('提示词已复制，去粘贴吧～'); };
   body.querySelector('#go').onclick = async () => {
     if (!notes.length) return toast('还没有想法可以整理');
     const out = body.querySelector('#out'); out.textContent = '思考中…';

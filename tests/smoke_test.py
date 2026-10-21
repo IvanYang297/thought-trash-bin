@@ -237,6 +237,15 @@ with sync_playwright() as p:
             assert pg.locator('#search').bounding_box() == s0; pg.evaluate("document.querySelector('#items').scrollTop = 0")
             pg.fill('#search', 'x'); pg.fill('#search', '')  # 在里面打字不会关闭
             assert pg.locator('#panel.hidden').count() == 0
+        if btn == '#btn-ai':
+            assert pg.locator('#mystic').inner_text().strip() == '🔮 复制玄学解读提示词'
+            pg.evaluate("window.__clip = ''; Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async t => { window.__clip = t; } } })")
+            pg.click('#mystic'); pg.wait_for_timeout(200)
+            clip = pg.evaluate('window.__clip')
+            assert '仅供娱乐' in clip and '【今日签文】' in clip and '宜：' in clip and '幸运色' in clip and '第 ' in clip, clip[:200]
+            assert pg.locator('#toast.show').count() == 1
+            pg.evaluate("document.querySelector('#toast').classList.remove('show')")
+            print('玄学解读提示词复制 OK')
         pg.wait_for_timeout(100); pg.screenshot(path=os.path.join(ROOT, 'docs', shot))
         print('面板小卡片 OK', btn, {k: round(v) for k, v in pb.items()})
     pg.click('#btn-ai'); assert pg.locator('#panel.hidden').count() == 1, '再点按钮应关闭'
