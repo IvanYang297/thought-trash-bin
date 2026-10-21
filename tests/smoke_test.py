@@ -93,6 +93,26 @@ with sync_playwright() as p:
     pg.dblclick('#trash'); pg.wait_for_timeout(300)
     assert pg.locator('.scrap[data-tag=idea]').count() == 1; pg.locator('.scrap').evaluate_all('s => s.forEach(x => x.remove())')
     print('心情标签 OK（保存 / front matter / 纸片着色 / 筛选）')
+    # 心情标签提示气泡：鼠标悬停 / 触屏点按 / 选中取消
+    pg.click('#btn-add'); tb = pg.locator('.bubble').last
+    tipv = lambda: pg.evaluate("(() => { const t = document.querySelector('#tag-tip'); return t ? [t.textContent, +getComputedStyle(t).opacity] : null; })()")
+    btn = tb.locator('[data-tag=idea]'); assert btn.get_attribute('aria-label') == '灵感' and not btn.get_attribute('title')
+    btn.hover(force=True); pg.wait_for_timeout(250); assert tipv() == ['灵感', 1], tipv()
+    tr = pg.locator('#tag-tip').bounding_box(); br = btn.bounding_box()
+    assert tr['y'] + tr['height'] <= br['y'] and pg.evaluate("document.querySelector('#tag-tip').parentElement === document.body")  # 在按钮上方、不在对话框里，不会被裁
+    pg.mouse.move(5, 300); pg.wait_for_timeout(350); assert tipv()[1] == 0
+    btn.click(force=True); pg.wait_for_timeout(200); assert tipv() == ['已选：灵感', 1], tipv()
+    pg.wait_for_timeout(150); assert tipv() == ['已选：灵感', 1]
+    pg.screenshot(path=os.path.join(ROOT, 'docs', 'mood-tooltip.png'))
+    btn.click(force=True); pg.wait_for_timeout(200); assert tipv()[0] == '已取消'
+    pg.wait_for_timeout(1700); assert tipv()[1] == 0, '约 1.5 秒后淡出'
+    # 触屏：用触摸指针事件点按（无悬停）
+    pg.evaluate("""() => { const b = [...document.querySelectorAll('.bubble')].pop().querySelector('[data-tag=heart]'), r = b.getBoundingClientRect(), o = { bubbles: true, pointerType: 'touch', isPrimary: true, clientX: r.x + 5, clientY: r.y + 5, pointerId: 7 };
+      b.dispatchEvent(new PointerEvent('pointerover', o)); b.dispatchEvent(new PointerEvent('pointerdown', o)); b.dispatchEvent(new PointerEvent('pointerup', o)); b.click(); }""")
+    pg.wait_for_timeout(200); assert tipv() == ['已选：心里话', 1], tipv()
+    pg.wait_for_timeout(1700); assert tipv()[1] == 0
+    pg.locator('.bubble').last.evaluate('b => b.remove()')
+    print('心情标签提示气泡 OK（悬停 / 选中 / 取消 / 触屏 1.5 秒淡出）')
     # 5. 自定义横幅：列表里「加到横幅」+ 设置里添加/移除
     pg.click('#btn-list'); pg.wait_for_selector('.note-item .to-banner'); pg.locator('.note-item .to-banner').first.click()
     assert pg.locator('#banner-track span.mine').count() >= 2

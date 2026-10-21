@@ -137,3 +137,9 @@ pre.result{white-space:pre-wrap;background:#fff;border:2px solid #ddd;padding:8p
 #panel-body .empty{color:#9a7b4f;margin:6px 0;text-align:center}
 #panel-body pre.result{font-size:12px}
 #toolbar button.on{background:#fff2b3}
+
+/* 心情标签提示气泡 */
+#tag-tip{position:fixed;z-index:90;background:#3b2a14;color:#fff;font-size:12px;line-height:1;padding:5px 9px;border-radius:10px;white-space:nowrap;pointer-events:none;opacity:0;transform:translateY(3px);transition:opacity .25s ease,transform .25s ease;box-shadow:0 3px 8px rgba(0,0,0,.2)}
+#tag-tip.show{opacity:1;transform:none;transition:opacity .12s ease,transform .12s ease}
+#tag-tip::after{content:"";position:absolute;left:calc(var(--ax,50%) - 5px);top:100%;border:5px solid transparent;border-top-color:#3b2a14}
+#tag-tip.below::after{top:auto;bottom:100%;border-top-color:transparent;border-bottom-color:#3b2a14}
