@@ -12,7 +12,7 @@ with sync_playwright() as p:
     pg.goto('http://127.0.0.1:8765/index.html'); pg.wait_for_selector('.bubble')
     def face_ok():  # 脸（眼睛+嘴）不能被任何纸团盖住
         r = pg.evaluate("""() => { const f = document.querySelector('#trash-face').getBoundingClientRect();
-          const hit = [...document.querySelectorAll('#trash-peek circle, #trash-burst circle')].filter(c => { const b = c.getBoundingClientRect();
+          const hit = [...document.querySelectorAll('#trash-peek .paper, #trash-burst .paper')].filter(c => { const b = c.getBoundingClientRect();
             return b.right > f.left && b.left < f.right && b.bottom > f.top && b.top < f.bottom; }); return hit.length; }""")
         assert r == 0, f'{r} 个纸团盖住了脸'
     def trash_shot(name):
@@ -35,10 +35,30 @@ with sync_playwright() as p:
     assert bb['y'] + bb['height'] < t0['y'], '空对话框应弹回'
     print('空对话框提示语/不保存/弹回 OK:', ph)
     assert pg.get_attribute('#btn-add', 'title').startswith('新建对话框')
-    drop('老板又让我周末改方案，烦死了'); drop('想学做咖啡，下个月报个班', 'idea')
+    # 表情平滑过渡：笑脸 -> 不开心（等咀嚼结束后约 1 秒）
+    from PIL import Image
+    drop('老板又让我周末改方案，烦死了')
+    moods, frames, want = [], [], [0.0, 0.5, 1.0]
+    for _ in range(60):
+        m = float(pg.get_attribute('#trash', 'data-mood')); moods.append(m)
+        if want and (m >= want[0] - 0.08 if want[0] else m == 0):
+            t = pg.locator('#trash').bounding_box(); frames.append(Image.open(__import__('io').BytesIO(pg.screenshot(clip={'x': t['x'] - 10, 'y': t['y'] + 30, 'width': t['width'] + 20, 'height': t['height'] - 20})))); want.pop(0)
+        if m == 1: break
+        pg.wait_for_timeout(50)
+    mids = [m for m in moods if 0.1 < m < 0.9]
+    assert moods[0] == 0 and moods[-1] == 1 and len(mids) >= 5, moods
+    if len(frames) < 3:
+        t = pg.locator('#trash').bounding_box(); frames.append(Image.open(__import__('io').BytesIO(pg.screenshot(clip={'x': t['x'] - 10, 'y': t['y'] + 30, 'width': t['width'] + 20, 'height': t['height'] - 20}))))
+    W, H = frames[0].size; strip = Image.new('RGB', (W * 3 + 20, H), '#fff7e0')
+    for i, f in enumerate(frames[:3]): strip.paste(f, (i * (W + 10), 0))
+    strip.save(os.path.join(ROOT, 'docs', 'face-transition.png'))
+    print(f'表情平滑过渡 OK：{len(mids)} 帧中间态，例如', [round(m, 2) for m in mids[:4]])
+    drop('想学做咖啡，下个月报个班', 'idea')
+    pg.wait_for_timeout(1000)
     assert pg.text_content('#count') == '2', pg.text_content('#count')
     assert pg.get_attribute('#trash', 'data-state') == 'unhappy'
-    assert pg.locator('#trash .mouth-sad').is_visible() and not pg.locator('#trash .mouth-happy').is_visible()
+    assert float(pg.get_attribute('#trash', 'data-mood')) == 1 and 'Q100.0 138.0' in pg.get_attribute('#trash-mouth', 'd')
+    assert pg.get_attribute('#brow-l', 'opacity') == '1' and float(pg.get_attribute('#eye-l', 'ry')) < 6
     face_ok(); pg.wait_for_timeout(1100); trash_shot('can-unhappy.png'); print('吃完变不开心 OK')
     n = pg.evaluate("""() => new Promise(r => { const q = indexedDB.open('thought-trash-bin'); q.onsuccess = () => {
         const g = q.result.transaction('notes').objectStore('notes').getAll(); g.onsuccess = () => r(g.result); }; })""")
@@ -84,13 +104,13 @@ with sync_playwright() as p:
     assert pg.text_content('#count') == '20' and pg.get_attribute('#trash', 'data-state') == 'ajar'
     assert 'burp' in pg.get_attribute('#trash', 'class') and 'AI整理' in pg.text_content('#toast')
     pg.wait_for_timeout(1300)
-    assert pg.locator('#trash-peek circle').count() >= 3 and pg.locator('#trash-burst circle').count() == 0
+    assert pg.locator('#trash-peek .paper').count() >= 3 and pg.locator('#trash-burst .paper').count() == 0
     ang = pg.evaluate("() => new DOMMatrix(getComputedStyle(document.querySelector('#trash-lid')).transform).b")
     assert ang < -0.05, ang  # 盖子翘起
     face_ok(); trash_shot('can-20.png')
     print('越吃越满 20：盖子翘起 + 纸团挤出 + 打嗝 OK')
     pg.evaluate("async () => { const s = await import('/js/storage.js'); for (let i = 0; i < 80; i++) await s.saveNote('第 ' + i + ' 条乱想', ''); (await import('/js/fill.js')).renderPile(await s.countUnsorted()); (await import('/js/trashbin.js')).setCount(await s.countNotes()); }")
-    assert pg.get_attribute('#trash', 'data-state') == 'struggle' and pg.locator('#trash-burst circle').count() >= 8
+    assert pg.get_attribute('#trash', 'data-state') == 'struggle' and pg.locator('#trash-burst .paper').count() >= 8
     a = []
     for _ in range(12): a.append(pg.evaluate("() => new DOMMatrix(getComputedStyle(document.querySelector('#trash-lid')).transform).f")); pg.wait_for_timeout(100)
     assert max(a) - min(a) > 8, a  # 盖子上下拉锯
@@ -105,6 +125,14 @@ with sync_playwright() as p:
     assert os.path.getsize(os.path.join(ROOT, 'docs', 'review-card.png')) > 10000; pg.click('#review-close')
     st = pg.evaluate("async () => { const r = await import('/js/review.js'), s = await import('/js/storage.js'); return r.weekStats(await s.listNotes()); }")
     assert st['total'] == 100 and st['by'] == {'rant': 6, 'idea': 5, 'heart': 4, 'none': 85}, st
+    # 反向：全部整理完 -> 平滑变回笑脸
+    pg.evaluate("async () => { const s = await import('/js/storage.js'); await s.markOrganized((await s.listNotes()).map(n => n.id)); (await import('/js/fill.js')).renderPile(0); }")
+    back = []
+    for _ in range(40):
+        back.append(float(pg.get_attribute('#trash', 'data-mood'))); pg.wait_for_timeout(50)
+        if back[-1] == 0: break
+    assert back[-1] == 0 and len([m for m in back if 0.1 < m < 0.9]) >= 5 and pg.get_attribute('#trash', 'data-state') == 'happy', back
+    print('整理完平滑变回笑脸 OK')
     fri = b.new_context(viewport={'width': 1280, 'height': 800}); fp2 = fri.new_page()
     fp2.on('pageerror', lambda e: errors.append(str(e)))
     fp2.clock.set_fixed_time('2026-10-23T10:00:00')  # 周五
@@ -117,7 +145,7 @@ with sync_playwright() as p:
     fp.goto('http://127.0.0.1:8765/index.html'); fp.wait_for_selector('.bubble')
     vals = fp.locator('.bubble textarea').evaluate_all('ts => ts.map(t => [t.value, t.placeholder])')
     assert vals and all(v == '' and ph for v, ph in vals), vals
-    assert fp.get_attribute('#trash', 'data-state') == 'happy' and fp.locator('#trash .mouth-happy').is_visible()
+    assert fp.get_attribute('#trash', 'data-state') == 'happy' and float(fp.get_attribute('#trash', 'data-mood')) == 0 and 'Q100.0 165.0' in fp.get_attribute('#trash-mouth', 'd')
     fp.evaluate('document.activeElement.blur()'); fp.wait_for_timeout(500)
     fp.screenshot(path=os.path.join(ROOT, 'docs', 'screenshot.png'))
     print('默认状态全为空提示语 OK:', [ph for _, ph in vals])

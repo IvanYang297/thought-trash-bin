@@ -72,21 +72,16 @@ pre.result{white-space:pre-wrap;background:#fff;border:2px solid #ddd;padding:8p
 
 /* ---- 垃圾桶状态（fill.js） ---- */
 #trash svg{overflow:visible}
-#trash .brow,#trash .mouth-sad{display:none}
-#trash:not([data-state=happy]) .brow,#trash:not([data-state=happy]) .mouth-sad{display:inline}
-#trash:not([data-state=happy]) .mouth-happy{display:none}
-#trash[data-state=happy] .brow,#trash:not([data-state]) .brow,#trash:not([data-state]) .mouth-sad{display:none}
-#trash:not([data-state]) .mouth-happy{display:inline}
 #trash-lid{transform-box:view-box;transform-origin:18px 36px}
 #trash[data-state=ajar] #trash-lid{transform:translateY(-6px) rotate(-9deg)}
 #trash[data-state=ajar]:not(.chew):not(.burp) #trash-lid{animation:ajar 2.4s ease-in-out infinite}
 @keyframes ajar{0%,100%{transform:translateY(-6px) rotate(-9deg)}50%{transform:translateY(-8px) rotate(-11deg)}}
-#trash .peek{transform-box:fill-box;transform-origin:center;animation:peek 1.6s ease-in-out infinite}
+#trash .peek>g{transform-box:fill-box;transform-origin:center;animation:peek 1.6s ease-in-out infinite}
 @keyframes peek{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(2px,-3px) scale(1.08,.92)}}
 #trash[data-state=struggle]:not(.chew):not(.burp) #trash-lid{animation:struggle 1.2s ease-in-out infinite}
 @keyframes struggle{0%{transform:translateY(-4px) rotate(-4deg)}20%{transform:translateY(0) rotate(-1deg)}28%{transform:translateY(-2px) rotate(-2deg)}
  45%{transform:translateY(-26px) rotate(-20deg)}52%{transform:translateY(-22px) rotate(-17deg)}58%{transform:translateY(-25px) rotate(-21deg)}100%{transform:translateY(-4px) rotate(-4deg)}}
 #trash[data-state=struggle] #trash-body{animation:shake .3s linear infinite}
 @keyframes shake{25%{transform:translateX(-2px) rotate(-1deg)}75%{transform:translateX(2px) rotate(1deg)}}
-#trash .fly{transform-box:fill-box;transform-origin:center;animation:fly 1.4s ease-out infinite}
-@keyframes fly{0%{transform:translate(0,0) scale(.4);opacity:0}15%{opacity:1}80%{opacity:1}100%{transform:translate(var(--dx),var(--dy)) rotate(200deg) scale(1);opacity:0}}
+#trash .fly>g{transform-box:fill-box;transform-origin:center;animation:fly 1.4s ease-out infinite}
+@keyframes fly{0%{transform:translate(0,0) scale(.5);opacity:0}12%{opacity:1}85%{opacity:1}100%{transform:translate(var(--dx),var(--dy)) rotate(200deg) scale(1);opacity:0}}
