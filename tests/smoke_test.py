@@ -39,10 +39,16 @@ with sync_playwright() as p:
     pg.locator('.scrap').evaluate_all('s => s.forEach(x => x.remove())')
     pg.dblclick('#trash'); pg.wait_for_timeout(1300)
     assert pg.locator('.scrap').count() == 2; print('双击爆炸 OK')
-    pg.mouse.click(250, 200); pg.keyboard.type('今天又开了三个会…'); pg.mouse.click(820, 380); pg.keyboard.type('周末想去爬山'); pg.mouse.click(560, 150); pg.mouse.click(5, 790)
-    pg.wait_for_timeout(300)
-    pg.screenshot(path=os.path.join(ROOT, 'docs', 'screenshot.png'))
     pg.click('#btn-list'); pg.fill('#search', '咖啡'); assert pg.locator('.note-item').count() == 1; print('搜索 OK')
+    # 默认状态截图：全新上下文（无存储），所有对话框为空、只显示淡色提示语
+    ctx = b.new_context(viewport={'width': 1280, 'height': 800}); fp = ctx.new_page()
+    fp.on('pageerror', lambda e: errors.append(str(e)))
+    fp.goto('http://127.0.0.1:8765/index.html'); fp.wait_for_selector('.bubble')
+    vals = fp.locator('.bubble textarea').evaluate_all('ts => ts.map(t => [t.value, t.placeholder])')
+    assert vals and all(v == '' and ph for v, ph in vals), vals
+    fp.evaluate('document.activeElement.blur()'); fp.wait_for_timeout(500)
+    fp.screenshot(path=os.path.join(ROOT, 'docs', 'screenshot.png'))
+    print('默认状态全为空提示语 OK:', [ph for _, ph in vals])
     b.close()
 srv.shutdown()
 assert not errors, errors
