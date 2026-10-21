@@ -4,6 +4,7 @@ import { listNotes, deleteNote, fmtFull, exportAll } from './storage.js';
 export const selected = new Set();
 const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export async function renderList(body, onChange, onBanner) {
+  body.classList.add('fixed-controls'); // 搜索/筛选固定，只有列表滚动
   body.innerHTML = `<input type="search" id="search" placeholder="搜索想法…">
     <select id="tag-filter"><option value="">全部标签</option>${Object.entries(TAGS).map(([k, t]) => `<option value="${k}">${t.emoji} ${t.name}</option>`).join('')}<option value="none">无标签</option></select>
     <div class="row"><button id="sel-all">全选</button><button id="sel-none">全不选</button><button id="export">导出全部 .md</button></div>
@@ -13,7 +14,7 @@ export async function renderList(body, onChange, onBanner) {
   const draw = q => {
     const tf = body.querySelector('#tag-filter').value;
     const f = notes.filter(n => (!q || n.text.toLowerCase().includes(q.toLowerCase())) && (!tf || (tf === 'none' ? !n.tag : n.tag === tf)));
-    items.innerHTML = f.length ? '' : '<p>还没有想法，或没有搜到～</p>';
+    items.innerHTML = f.length ? '' : `<p class="empty">${notes.length ? '没有搜到～' : '还没有想法，丢一条进桶试试 🗑️'}</p>`;
     f.forEach(n => {
       const d = document.createElement('div'); d.className = 'note-item';
       d.innerHTML = `<input type="checkbox" ${selected.has(n.id) ? 'checked' : ''}><div class="txt"><time>${fmtFull(n.createdAt)}${n.inFolder ? ' · 📁' : ''} · ${tagLabel(n.tag)}</time>${esc(n.text)}</div><div class="acts"><button class="to-banner" title="加到横幅">加到横幅</button><button class="del" title="删除">🗑</button></div>`;

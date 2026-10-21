@@ -72,7 +72,7 @@ with sync_playwright() as p:
     pg.locator('.scrap').evaluate_all('s => s.forEach(x => x.remove())')
     pg.dblclick('#trash'); pg.wait_for_timeout(1300)
     assert pg.locator('.scrap').count() == 2; print('双击爆炸 OK')
-    pg.click('#btn-list'); pg.fill('#search', '咖啡'); assert pg.locator('.note-item').count() == 1; print('搜索 OK')
+    pg.click('#btn-list'); pg.wait_for_selector('.note-item'); pg.fill('#search', '咖啡'); assert pg.locator('.note-item').count() == 1; print('搜索 OK')
     # 1. 心情标签
     tags = {x['text']: x.get('tag') for x in n}
     assert tags['想学做咖啡，下个月报个班'] == 'idea' and not tags['老板又让我周末改方案，烦死了'], tags
@@ -84,7 +84,7 @@ with sync_playwright() as p:
     assert pg.locator('.scrap[data-tag=idea]').count() == 1; pg.locator('.scrap').evaluate_all('s => s.forEach(x => x.remove())')
     print('心情标签 OK（保存 / front matter / 纸片着色 / 筛选）')
     # 5. 自定义横幅：列表里「加到横幅」+ 设置里添加/移除
-    pg.locator('.note-item .to-banner').first.click()
+    pg.click('#btn-list'); pg.wait_for_selector('.note-item .to-banner'); pg.locator('.note-item .to-banner').first.click()
     assert pg.locator('#banner-track span.mine').count() >= 2
     pg.click('#btn-settings'); pg.fill('#banner-input', '今天的我也很棒'); pg.click('#banner-add')
     assert '今天的我也很棒' in pg.text_content('#banner-track')
@@ -181,6 +181,34 @@ with sync_playwright() as p:
     print('100 条：纸团喷出 + 盖子拉锯 OK')
     pg.evaluate("async () => { const s = await import('/js/storage.js'); const ns = await s.listNotes(); await s.markOrganized(ns.filter(n => n.text.startsWith('第 ')).map(n => n.id)); (await import('/js/fill.js')).renderPile(await s.countUnsorted()); }")
     assert pg.get_attribute('#trash', 'data-state') == 'ajar'
+    # 面板：与使用须知同款小卡片，挂在各自按钮下，点击开关 / 点外面 / Esc 关闭，不挡桶
+    pg.evaluate("document.querySelector('#toast').classList.remove('show')")
+    tb = pg.locator('#trash').bounding_box()
+    hp = pg.evaluate("getComputedStyle(document.querySelector('#help-pop')).fontSize")
+    for btn, shot in [('#btn-list', 'list-panel.png'), ('#btn-settings', 'settings-panel.png'), ('#btn-ai', 'ai-panel.png')]:
+        pg.click(btn); pg.wait_for_timeout(300)
+        pb = pg.locator('#panel').bounding_box(); bb = pg.locator(btn).bounding_box()
+        assert 290 <= pb['width'] <= 310 and pb['height'] <= 800 * 0.7 + 1, (btn, pb)
+        assert 0 <= pb['y'] - (bb['y'] + bb['height']) <= 14 and abs((pb['x'] + pb['width']) - (bb['x'] + bb['width'])) < 2, (btn, pb, bb)
+        ar = pg.evaluate("(() => { const p = document.querySelector('#panel'), s = getComputedStyle(p, '::before'); return p.getBoundingClientRect().right - parseFloat(s.right) - 6; })()")
+        assert abs(ar - (bb['x'] + bb['width'] / 2)) < 4, (btn, ar, bb)  # 小箭头指向按钮
+        assert pg.evaluate("getComputedStyle(document.querySelector('#panel')).fontSize") == hp
+        assert not (pb['x'] < tb['x'] + tb['width'] and pb['x'] + pb['width'] > tb['x'] and pb['y'] + pb['height'] > tb['y']), ('挡住桶了', btn, pb, tb)
+        if btn == '#btn-list':
+            sc = pg.evaluate("(() => { const i = document.querySelector('#items'); return [i.scrollHeight > i.clientHeight, getComputedStyle(i).overflowY]; })()")
+            assert sc == [True, 'auto'], sc
+            s0 = pg.locator('#search').bounding_box()
+            pg.evaluate("document.querySelector('#items').scrollTop = 99999"); pg.wait_for_timeout(100)
+            assert pg.locator('#search').bounding_box() == s0; pg.evaluate("document.querySelector('#items').scrollTop = 0")
+            pg.fill('#search', 'x'); pg.fill('#search', '')  # 在里面打字不会关闭
+            assert pg.locator('#panel.hidden').count() == 0
+        pg.wait_for_timeout(100); pg.screenshot(path=os.path.join(ROOT, 'docs', shot))
+        print('面板小卡片 OK', btn, {k: round(v) for k, v in pb.items()})
+    pg.click('#btn-ai'); assert pg.locator('#panel.hidden').count() == 1, '再点按钮应关闭'
+    pg.click('#btn-ai'); pg.mouse.click(60, 300); assert pg.locator('#panel.hidden').count() == 1, '点外面应关闭'
+    pg.locator('.bubble').evaluate_all('bs => bs.forEach(b => b.remove())')
+    pg.click('#btn-list'); pg.keyboard.press('Escape'); assert pg.locator('#panel.hidden').count() == 1
+    print('面板开关 OK（按钮切换 / 点外面 / Esc）')
     # 3. 本周回顾卡片 + 下载 PNG
     pg.click('#btn-review'); pg.wait_for_selector('#review canvas')
     with pg.expect_download() as dl: pg.click('#review-dl')
@@ -211,6 +239,9 @@ with sync_playwright() as p:
     assert fp.get_attribute('#trash', 'data-state') == 'happy' and float(fp.get_attribute('#trash', 'data-mood')) == 0 and 'Q120.0 192.0' in fp.get_attribute('#mouth-smile', 'd')
     fp.evaluate('document.activeElement.blur()'); fp.wait_for_timeout(500)
     fp.screenshot(path=os.path.join(ROOT, 'docs', 'screenshot.png'))
+    fp.click('#btn-list'); fp.wait_for_timeout(200); eb = fp.locator('#panel').bounding_box()
+    assert eb['height'] < 200 and '还没有想法' in fp.text_content('#items'), eb
+    fp.keyboard.press('Escape'); fp.wait_for_timeout(100); print('空状态面板紧凑 OK，高', round(eb['height']))
     print('默认状态全为空提示语 OK:', [ph for _, ph in vals])
     b.close()
 srv.shutdown()

@@ -56,7 +56,6 @@ pre.result{white-space:pre-wrap;background:#fff;border:2px solid #ddd;padding:8p
 #banner-track span.mine{color:#c0392b}
 .note-item .acts{display:flex;flex-direction:column;gap:4px}
 .note-item .acts button{font-size:12px;padding:2px 6px}
-#panel{top:100px;height:calc(100% - 100px);border-top:4px solid #5a3e1b;border-top-left-radius:16px}
 
 
 /* ---- 垃圾桶（美术见 assets/can/，状态由 fill.js 设置 data-state，表情由 face.js 插值） ---- */
@@ -115,3 +114,26 @@ pre.result{white-space:pre-wrap;background:#fff;border:2px solid #ddd;padding:8p
 #help-pop p{margin:0}
 #help-pop kbd{background:#fff;border:1px solid #5a3e1b;border-bottom-width:2px;border-radius:4px;padding:0 3px;font-size:11px;font-family:inherit}
 #help-pop .help-foot{color:#9a7b4f;margin-top:4px;border-top:1px dashed #d8c7a3;padding-top:4px}
+
+/* 面板：与「使用须知」同款小卡片，挂在各自按钮下（位置/最大高度由 main.js placePanel 计算） */
+#panel{top:100px;right:14px;width:300px;height:auto;max-height:min(70vh,520px);border:3px solid #5a3e1b;border-radius:14px;box-shadow:0 6px 18px rgba(59,42,20,.25);padding:10px 12px;font-size:12px;line-height:1.55;color:#3b2a14;overflow:visible;animation:popin .15s ease}
+@keyframes popin{from{opacity:0;transform:translateY(-4px)}}
+#panel::before{content:"";position:absolute;top:-9px;right:var(--arrow-right,28px);border:6px solid transparent;border-bottom:7px solid #5a3e1b;border-top:0}
+#panel .panel-head{flex:none;padding-bottom:4px;border-bottom:1px dashed #d8c7a3;margin-bottom:6px}
+#panel .panel-head h2{font-size:14px}
+#panel .panel-head button{padding:0 6px;font-size:12px;box-shadow:none;border-width:2px}
+#panel-body{flex:1 1 auto;min-height:0;overflow-y:auto}
+#panel-body.fixed-controls{display:flex;flex-direction:column;overflow:hidden}
+#panel-body.fixed-controls > :not(#items){flex:none}
+#panel-body.fixed-controls #items{flex:1 1 auto;min-height:0;overflow-y:auto}
+#panel-body h3{font-size:12px;margin:8px 0 2px}
+#panel-body p{margin:3px 0}
+#panel-body button{font-size:12px;padding:2px 8px;border-width:2px;box-shadow:0 2px 0 #5a3e1b}
+#panel-body input,#panel-body select,#panel-body textarea{font-size:12px!important;padding:4px 6px!important;border-width:2px!important}
+#panel-body input[type=search]{margin:2px 0 4px}
+#panel-body .row{margin:4px 0}
+#panel-body .note-item{padding:4px 0}
+#panel-body .note-item time{font-size:11px}
+#panel-body .empty{color:#9a7b4f;margin:6px 0;text-align:center}
+#panel-body pre.result{font-size:12px}
+#toolbar button.on{background:#fff2b3}

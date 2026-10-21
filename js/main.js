@@ -34,8 +34,32 @@ function addBannerLine(t) { if (cb.addCustom(t)) { initBanner(); toast('已加�
 
 const panel = $('#panel'), body = $('#panel-body');
 let current = null;
-function openPanel(kind) { current = kind; panel.classList.remove('hidden'); refreshPanel(); }
-$('#panel-close').onclick = () => { panel.classList.add('hidden'); current = null; };
+const PANEL_BTN = { list: '#btn-list', ai: '#btn-ai', settings: '#btn-settings' };
+// 面板像「使用须知」一样：小卡片挂在自己的按钮下面，带小箭头；点击打开，再点按钮 / 点外面 / Esc 关闭
+function placePanel() {
+  const r = $(PANEL_BTN[current]).getBoundingClientRect(), W = panel.offsetWidth;
+  const right = Math.max(8, innerWidth - r.right), top = r.bottom + 8;
+  panel.style.top = top + 'px'; panel.style.right = right + 'px';
+  const arrow = Math.min(W - 18, Math.max(12, (innerWidth - right) - (r.left + r.width / 2) - 6));
+  panel.style.setProperty('--arrow-right', arrow + 'px');
+  // 不挡住垃圾桶：横向和桶重叠时，卡片底部停在桶顶上方
+  const t = trash.getTrashRect(), left = innerWidth - right - W;
+  let maxH = Math.min(innerHeight * 0.7, 520);
+  if (left < t.right && innerWidth - right > t.left) maxH = Math.min(maxH, t.top - top - 12);
+  panel.style.maxHeight = Math.max(140, maxH) + 'px';
+}
+function closePanel() { panel.classList.add('hidden'); current = null; document.querySelectorAll('#toolbar .on').forEach(b => b.classList.remove('on')); }
+function openPanel(kind) {
+  if (current === kind) return closePanel();
+  closePanel(); current = kind; panel.classList.remove('hidden'); $(PANEL_BTN[kind]).classList.add('on');
+  placePanel(); refreshPanel();
+}
+addEventListener('resize', () => current && placePanel());
+document.addEventListener('pointerdown', e => {
+  if (!current || panel.contains(e.target) || e.target.closest(Object.values(PANEL_BTN).join(','))) return;
+  closePanel();
+}, true);
+$('#panel-close').onclick = closePanel;
 $('#btn-list').onclick = () => openPanel('list');
 $('#btn-review').onclick = async () => review.showReview(await store.listNotes());
 $('#btn-ai').onclick = () => openPanel('ai');
@@ -44,10 +68,11 @@ initHelpPopover($('#btn-help'));
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
   if (document.getElementById('review')) return document.getElementById('review').remove();
-  if (current) { panel.classList.add('hidden'); current = null; }
+  if (current) closePanel();
 });
 async function refreshPanel() {
   if (!current) return;
+  body.classList.remove('fixed-controls');
   $('#panel-title').textContent = { list: '想法列表', ai: 'AI 整理', settings: '设置' }[current];
   if (current === 'list') return renderList(body, async () => { trash.setCount(await store.countNotes()); fill.renderPile(await store.countUnsorted()); }, addBannerLine);
   if (current === 'ai') return renderAI();
