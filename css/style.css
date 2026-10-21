@@ -52,3 +52,12 @@ pre.result{white-space:pre-wrap;background:#fff;border:2px solid #ddd;padding:8p
 .tag-picker button{padding:0 4px;font-size:14px;border-width:2px;box-shadow:none;border-radius:8px;opacity:.55;background:transparent}
 .tag-picker button.on{opacity:1;background:#fff;border-color:#c0392b}
 #tag-filter{font:inherit;padding:4px;border:2px solid #5a3e1b;border-radius:8px}
+
+#trash-wrap{position:fixed}
+#trash.burp #trash-body{animation:burp 1.1s ease-out}
+#trash.burp #trash-lid{animation:lidpop 1.1s ease-out}
+@keyframes burp{15%{transform:scale(1.08,.92)}35%{transform:scale(.94,1.08)}55%{transform:scale(1.03,.97)}}
+@keyframes lidpop{20%{transform:translateY(-28px) rotate(-12deg)}50%{transform:translateY(-4px)}}
+#trash.full #trash-mouth{d:path("M80 150 Q100 140 120 150")}
+.burp-bubble{position:absolute;top:-10px;left:62%;background:#fff;border:3px solid #3b2a14;border-radius:50%;padding:6px 12px;font-weight:bold;animation:burpup 1.6s ease-out forwards}
+@keyframes burpup{from{transform:translateY(20px) scale(.3);opacity:0}30%{opacity:1;transform:translateY(0) scale(1.1)}to{transform:translateY(-60px) scale(1);opacity:0}}

@@ -75,6 +75,11 @@ export async function listNotes() {
   const all = await tx('notes', 'readonly', s => s.getAll());
   return all.sort((a, b) => b.createdAt - a.createdAt);
 }
+export async function countUnsorted() { return (await listNotes()).filter(n => !n.organized).length; }
+export async function markOrganized(ids) {
+  const all = await listNotes();
+  await tx('notes', 'readwrite', s => { all.filter(n => ids.includes(n.id)).forEach(n => s.put({ ...n, organized: true })); });
+}
 export async function countNotes() { return tx('notes', 'readonly', s => s.count()); }
 export async function deleteNote(note) {
   await tx('notes', 'readwrite', s => s.delete(note.id));

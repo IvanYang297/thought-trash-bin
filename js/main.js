@@ -6,6 +6,7 @@ import * as store from './storage.js';
 import * as ai from './ai.js';
 import { renderList, selected } from './list.js';
 import { explode } from './easter-eggs.js';
+import * as fill from './fill.js';
 
 const $ = s => document.querySelector(s);
 export function toast(msg, ms = 2200) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), ms); }
@@ -17,7 +18,8 @@ initBubbles($('#stage'), {
   onEmpty: () => toast('空的对话框，桶不吃哦～先写点什么吧'),
   onDrop: async (b, text, tag) => {
     b.remove(); trash.chew();
-    try { const n = await store.saveNote(text, tag); trash.increment(); toast(n.inFolder ? '嚼嚼嚼…已存进文件夹 📁' : '嚼嚼嚼…已存在浏览器里'); refreshPanel(); }
+    try { const n = await store.saveNote(text, tag); trash.increment(); toast(n.inFolder ? '嚼嚼嚼…已存进文件夹 📁' : '嚼嚼嚼…已存在浏览器里');
+      const u = await store.countUnsorted(); fill.renderPile(u); if (fill.shouldBurp(u)) setTimeout(() => fill.burp(toast), 1000); refreshPanel(); }
     catch (e) { console.error(e); toast('保存失败：' + e.message); }
   },
 });
@@ -33,7 +35,7 @@ $('#btn-settings').onclick = () => openPanel('settings');
 async function refreshPanel() {
   if (!current) return;
   $('#panel-title').textContent = { list: '想法列表', ai: 'AI 整理', settings: '设置' }[current];
-  if (current === 'list') return renderList(body, async () => trash.setCount(await store.countNotes()));
+  if (current === 'list') return renderList(body, async () => { trash.setCount(await store.countNotes()); fill.renderPile(await store.countUnsorted()); });
   if (current === 'ai') return renderAI();
   renderSettings();
 }
@@ -52,6 +54,7 @@ async function renderAI() {
     const out = body.querySelector('#out'); out.textContent = '思考中…';
     try {
       const md = await ai.organize(notes);
+      await store.markOrganized(notes.map(n => n.id)); fill.renderPile(await store.countUnsorted());
       const f = await store.saveResult(`# AI 整理结果（${store.fmtFull(Date.now())}）\n\n${md}\n`);
       out.innerHTML = ''; const pre = document.createElement('pre'); pre.className = 'result'; pre.textContent = md; out.appendChild(pre);
       toast(f.inFolder ? `已保存到文件夹：${f.name}` : `已下载：${f.name}`);
@@ -76,6 +79,7 @@ function renderSettings() {
 (async () => {
   await store.restoreFolder();
   trash.setCount(await store.countNotes());
+  fill.renderPile(await store.countUnsorted());
   createBubble(innerWidth * 0.15, innerHeight * 0.22);
   createBubble(innerWidth * 0.6, innerHeight * 0.3);
 })();
