@@ -30,7 +30,7 @@ export const pad = n => String(n).padStart(2, '0');
 export function fmtShort(ts) { const d = new Date(ts); return `${d.getMonth() + 1}月${d.getDate()}日 ${pad(d.getHours())}:${pad(d.getMinutes())}`; }
 export function fmtFull(ts) { const d = new Date(ts); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`; }
 function fileName(ts, prefix = '想法') { const d = new Date(ts); return `${prefix}-${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}-${d.getMilliseconds()}.md`; }
-export const noteToMd = n => `# ${fmtFull(n.createdAt)}\n\n${n.text}\n`;
+export const noteToMd = n => `---\ntime: ${fmtFull(n.createdAt)}\ntag: ${n.tag || ''}\n---\n\n# ${fmtFull(n.createdAt)}\n\n${n.text}\n`;
 
 export const supportsFolder = () => 'showDirectoryPicker' in window;
 let dirHandle = null;
@@ -64,9 +64,9 @@ async function writeFile(name, content) {
   } catch (e) { console.warn('写入文件夹失败，已保存在浏览器里', e); return false; }
 }
 
-export async function saveNote(text) {
+export async function saveNote(text, tag = '') {
   const createdAt = Date.now();
-  const note = { id: `${createdAt}-${Math.random().toString(36).slice(2, 7)}`, createdAt, text, file: fileName(createdAt) };
+  const note = { id: `${createdAt}-${Math.random().toString(36).slice(2, 7)}`, createdAt, text, tag, file: fileName(createdAt) };
   note.inFolder = await writeFile(note.file, noteToMd(note));
   await tx('notes', 'readwrite', s => s.put(note));
   return note;
@@ -93,6 +93,6 @@ export function download(name, content) {
 }
 export async function exportAll() {
   const notes = await listNotes();
-  const md = `# 思绪垃圾桶 导出（共 ${notes.length} 条）\n\n` + notes.map(n => `## ${fmtFull(n.createdAt)}\n\n${n.text}\n`).join('\n---\n\n');
+  const md = `# 思绪垃圾桶 导出（共 ${notes.length} 条）\n\n` + notes.map(n => `## ${fmtFull(n.createdAt)}${n.tag ? ' #' + n.tag : ''}\n\n${n.text}\n`).join('\n---\n\n');
   download(fileName(Date.now(), '全部想法'), md);
 }

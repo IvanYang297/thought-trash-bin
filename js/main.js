@@ -15,9 +15,9 @@ trash.initTrash({ onBurst: async () => explode(await store.listNotes(), trash.tr
 initBubbles($('#stage'), {
   isOverTrash: trash.isOverTrash, onHover: trash.setHover,
   onEmpty: () => toast('空的对话框，桶不吃哦～先写点什么吧'),
-  onDrop: async (b, text) => {
+  onDrop: async (b, text, tag) => {
     b.remove(); trash.chew();
-    try { const n = await store.saveNote(text); trash.increment(); toast(n.inFolder ? '嚼嚼嚼…已存进文件夹 📁' : '嚼嚼嚼…已存在浏览器里'); refreshPanel(); }
+    try { const n = await store.saveNote(text, tag); trash.increment(); toast(n.inFolder ? '嚼嚼嚼…已存进文件夹 📁' : '嚼嚼嚼…已存在浏览器里'); refreshPanel(); }
     catch (e) { console.error(e); toast('保存失败：' + e.message); }
   },
 });

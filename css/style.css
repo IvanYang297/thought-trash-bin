@@ -47,3 +47,8 @@ pre.result{white-space:pre-wrap;background:#fff;border:2px solid #ddd;padding:8p
 .bubble textarea::placeholder{color:#9e9e9e;opacity:.6;font-style:italic}
 .bubble textarea:focus::placeholder{opacity:.35}
 .bubble.bounce{transition:left .5s cubic-bezier(.34,1.56,.64,1),top .5s cubic-bezier(.34,1.56,.64,1)}
+
+.tag-picker{display:flex;gap:4px;margin-top:2px}
+.tag-picker button{padding:0 4px;font-size:14px;border-width:2px;box-shadow:none;border-radius:8px;opacity:.55;background:transparent}
+.tag-picker button.on{opacity:1;background:#fff;border-color:#c0392b}
+#tag-filter{font:inherit;padding:4px;border:2px solid #5a3e1b;border-radius:8px}

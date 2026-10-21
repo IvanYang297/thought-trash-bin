@@ -1,19 +1,22 @@
 // 侧边栏：想法列表（按时间、搜索、删除、勾选用于 AI 整理）
+import { TAGS, tagLabel } from './tags.js';
 import { listNotes, deleteNote, fmtFull, exportAll } from './storage.js';
 export const selected = new Set();
 const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export async function renderList(body, onChange) {
   body.innerHTML = `<input type="search" id="search" placeholder="搜索想法…">
+    <select id="tag-filter"><option value="">全部标签</option>${Object.entries(TAGS).map(([k, t]) => `<option value="${k}">${t.emoji} ${t.name}</option>`).join('')}<option value="none">无标签</option></select>
     <div class="row"><button id="sel-all">全选</button><button id="sel-none">全不选</button><button id="export">导出全部 .md</button></div>
     <div id="items"></div>`;
   const notes = await listNotes();
   const items = body.querySelector('#items');
   const draw = q => {
-    const f = notes.filter(n => !q || n.text.toLowerCase().includes(q.toLowerCase()));
+    const tf = body.querySelector('#tag-filter').value;
+    const f = notes.filter(n => (!q || n.text.toLowerCase().includes(q.toLowerCase())) && (!tf || (tf === 'none' ? !n.tag : n.tag === tf)));
     items.innerHTML = f.length ? '' : '<p>还没有想法，或没有搜到～</p>';
     f.forEach(n => {
       const d = document.createElement('div'); d.className = 'note-item';
-      d.innerHTML = `<input type="checkbox" ${selected.has(n.id) ? 'checked' : ''}><div class="txt"><time>${fmtFull(n.createdAt)}${n.inFolder ? ' · 📁' : ''}</time>${esc(n.text)}</div><button title="删除">🗑</button>`;
+      d.innerHTML = `<input type="checkbox" ${selected.has(n.id) ? 'checked' : ''}><div class="txt"><time>${fmtFull(n.createdAt)}${n.inFolder ? ' · 📁' : ''} · ${tagLabel(n.tag)}</time>${esc(n.text)}</div><button title="删除">🗑</button>`;
       d.querySelector('input').onchange = e => e.target.checked ? selected.add(n.id) : selected.delete(n.id);
       d.querySelector('button').onclick = async () => {
         if (!confirm('确定删除这条想法吗？')) return;
@@ -24,6 +27,7 @@ export async function renderList(body, onChange) {
   };
   const search = body.querySelector('#search');
   search.oninput = () => draw(search.value);
+  body.querySelector('#tag-filter').onchange = () => draw(search.value);
   body.querySelector('#sel-all').onclick = () => { notes.forEach(n => selected.add(n.id)); draw(search.value); };
   body.querySelector('#sel-none').onclick = () => { selected.clear(); draw(search.value); };
   body.querySelector('#export').onclick = exportAll;

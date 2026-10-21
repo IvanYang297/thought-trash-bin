@@ -1,5 +1,6 @@
 // 彩蛋：纸片从垃圾桶里爆出来，写着时间和当时的想法
 import { fmtShort } from './storage.js';
+import { tagColor, TAGS } from './tags.js';
 const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function explode(notes, origin) {
   document.querySelectorAll('.scrap').forEach(s => s.remove());
@@ -7,7 +8,8 @@ export function explode(notes, origin) {
   list.forEach((n, i) => {
     const s = document.createElement('div');
     s.className = 'scrap';
-    s.innerHTML = `<time>${fmtShort(n.createdAt)}</time>${esc(n.text.length > 80 ? n.text.slice(0, 80) + '…' : n.text)}`;
+    s.style.background = tagColor(n.tag); if (n.tag) s.dataset.tag = n.tag;
+    s.innerHTML = `<time>${TAGS[n.tag]?.emoji || ''} ${fmtShort(n.createdAt)}</time>${esc(n.text.length > 80 ? n.text.slice(0, 80) + '…' : n.text)}`;
     s.style.left = origin.x - 90 + 'px'; s.style.top = origin.y + 'px';
     s.style.transform = 'scale(.2)'; s.style.opacity = '0';
     document.body.appendChild(s);

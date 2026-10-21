@@ -1,3 +1,4 @@
+import { attachTagPicker } from './tags.js';
 // 冒险岛风格漂浮对话框：可输入、可拖动，拖进垃圾桶就保存
 // 空对话框里的淡色提示语（只是 placeholder，永远不会被保存）
 export const HINTS = ['想到啥写啥…', '吐个槽吧…', '心里话放这里…', '老板今天又说啥了？', '脑子里乱糟糟的，倒出来吧…', '一个突发奇想…', '今天最想吐槽的一件事…', '偷偷写，桶不会说出去的～'];
@@ -17,6 +18,7 @@ export function createBubble(x, y) {
   b.style.animationDelay = (-Math.random() * 3).toFixed(2) + 's';
   b.innerHTML = `<div class="grip"><span>⠿ 拖我进垃圾桶</span><span class="close" title="不要了">✕</span></div>
     <textarea placeholder="${HINTS[hintIdx++ % HINTS.length]}"></textarea>`;
+  attachTagPicker(b);
   stage.appendChild(b);
   b.querySelector('.close').addEventListener('click', e => { e.stopPropagation(); b.remove(); });
   b.addEventListener('pointerdown', e => startDrag(e, b));
@@ -38,7 +40,7 @@ function startDrag(e, b) {
     b.classList.remove('dragging'); opts.onHover(false);
     if (!opts.isOverTrash(ev.clientX, ev.clientY)) return;
     const text = b.querySelector('textarea').value.trim(); // 只取用户输入，提示语不在 value 里
-    if (text) return opts.onDrop(b, text);
+    if (text) return opts.onDrop(b, text, b.dataset.tag || '');
     bounceBack(b, startL, startT); opts.onEmpty?.();
   };
   b.addEventListener('pointermove', move); b.addEventListener('pointerup', up);
