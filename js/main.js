@@ -7,6 +7,7 @@ import * as ai from './ai.js';
 import { renderList, selected } from './list.js';
 import { explode } from './easter-eggs.js';
 import * as fill from './fill.js';
+import * as review from './review.js';
 
 const $ = s => document.querySelector(s);
 export function toast(msg, ms = 2200) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), ms); }
@@ -30,6 +31,7 @@ let current = null;
 function openPanel(kind) { current = kind; panel.classList.remove('hidden'); refreshPanel(); }
 $('#panel-close').onclick = () => { panel.classList.add('hidden'); current = null; };
 $('#btn-list').onclick = () => openPanel('list');
+$('#btn-review').onclick = async () => review.showReview(await store.listNotes());
 $('#btn-ai').onclick = () => openPanel('ai');
 $('#btn-settings').onclick = () => openPanel('settings');
 async function refreshPanel() {
@@ -80,6 +82,7 @@ function renderSettings() {
   await store.restoreFolder();
   trash.setCount(await store.countNotes());
   fill.renderPile(await store.countUnsorted());
+  review.maybeAutoShow(await store.listNotes());
   createBubble(innerWidth * 0.15, innerHeight * 0.22);
   createBubble(innerWidth * 0.6, innerHeight * 0.3);
 })();
