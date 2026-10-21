@@ -68,5 +68,7 @@ python3 tests/smoke_test.py
 ## 隐私
 想法只保存在你的电脑 / 浏览器里。DeepSeek 密钥只存在浏览器 localStorage，仅在你点击「AI 整理」时随请求发送给 DeepSeek。
 
+本站使用 Cloudflare Web Analytics，仅用于匿名访问统计，不上传任何想法内容。
+
 ## 许可证
 MIT

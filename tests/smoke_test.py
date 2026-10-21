@@ -1,15 +1,25 @@
 """冒烟测试：python3 tests/smoke_test.py（需 pip install playwright && playwright install chromium）"""
-import http.server, threading, functools, os, sys
+import re, http.server, threading, functools, os, sys
 from playwright.sync_api import sync_playwright
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 srv = http.server.ThreadingHTTPServer(('127.0.0.1', 8766), functools.partial(http.server.SimpleHTTPRequestHandler, directory=ROOT))
 threading.Thread(target=srv.serve_forever, daemon=True).start()
 errors = []
 with sync_playwright() as p:
-    b = p.chromium.launch(); pg = b.new_page(viewport={'width': 1280, 'height': 800})
+    b = p.chromium.launch()
+    # 离线测试：拦掉 Cloudflare 统计脚本（静默返回空脚本，避免网络错误进控制台）
+    def block_cf(ctx): ctx.route(re.compile(r'https://(static\.)?cloudflareinsights\.com/.*'), lambda r: r.fulfill(status=200, content_type='application/javascript', body=''))
+    _new_ctx = b.new_context
+    def new_context(**kw):
+        c = _new_ctx(**kw); block_cf(c); return c
+    b.new_context = new_context
+    pg = b.new_context(viewport={'width': 1280, 'height': 800}).new_page()
+    cf_req = []; pg.on('request', lambda r: 'cloudflareinsights' in r.url and cf_req.append(r.url))
     pg.on('console', lambda m: m.type == 'error' and errors.append(m.text))
     pg.on('pageerror', lambda e: errors.append(str(e)))
     pg.goto('http://127.0.0.1:8766/index.html'); pg.wait_for_selector('.bubble')
+    pg.wait_for_load_state('load')
+    assert cf_req and pg.locator('script[data-cf-beacon]').count() == 1; print('Cloudflare 统计脚本已引入（测试中已拦截）OK')
     def face_ok():  # 脸（眼睛+嘴）不能被任何纸团盖住
         r = pg.evaluate("""() => { const f = document.querySelector('#face').getBoundingClientRect();
           const hit = [...document.querySelectorAll('#peek .paper, #overflow .paper, .spray .paper')].filter(c => { const b = c.getBoundingClientRect();

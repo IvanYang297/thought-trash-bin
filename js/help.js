@@ -14,7 +14,7 @@ export function initHelpPopover(btn) {
   pop.id = 'help-pop'; pop.setAttribute('role', 'tooltip'); pop.tabIndex = -1;
   pop.innerHTML = `<div class="help-title">使用须知</div>` + SECTIONS.map(([h, items]) =>
     `<section><h4>${h}</h4>${items.map(i => `<p>${i}</p>`).join('')}</section>`).join('') +
-    `<p class="help-foot">除了 AI 整理，全部可离线使用</p>`;
+    `<p class="help-foot">除了 AI 整理，全部可离线使用<br>本站使用 Cloudflare Web Analytics，仅用于匿名访问统计，不上传任何想法内容。</p>`;
   document.body.appendChild(pop);
   btn.setAttribute('aria-describedby', 'help-pop'); btn.removeAttribute('title');
   let showT, hideT;
