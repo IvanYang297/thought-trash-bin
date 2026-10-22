@@ -12,6 +12,7 @@ import * as review from './review.js';
 import { initShortcuts } from './shortcuts.js';
 import * as cb from './custom-banner.js';
 import { initHelpPopover } from './help.js';
+import { initLanding, startTour } from './tour.js';
 
 const $ = s => document.querySelector(s);
 export function toast(msg, ms = 2200) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), ms); }
@@ -66,7 +67,7 @@ $('#btn-list').onclick = () => openPanel('list');
 $('#btn-review').onclick = async () => review.showReview(await store.listNotes());
 $('#btn-ai').onclick = () => openPanel('ai');
 $('#btn-settings').onclick = () => openPanel('settings');
-initHelpPopover($('#btn-help'));
+initHelpPopover($('#btn-help'), () => startTour(0));
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
   if (document.getElementById('review')) return document.getElementById('review').remove();
@@ -132,4 +133,5 @@ function renderSettings() {
   review.maybeAutoShow(await store.listNotes());
   createBubble(innerWidth * 0.15, innerHeight * 0.22);
   createBubble(innerWidth * 0.6, innerHeight * 0.3);
+  initLanding();
 })();

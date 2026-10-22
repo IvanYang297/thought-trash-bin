@@ -10,8 +10,10 @@ with sync_playwright() as p:
     # 离线测试：拦掉 Cloudflare 统计脚本（静默返回空脚本，避免网络错误进控制台）
     def block_cf(ctx): ctx.route(re.compile(r'https://(static\.)?cloudflareinsights\.com/.*'), lambda r: r.fulfill(status=200, content_type='application/javascript', body=''))
     _new_ctx = b.new_context
-    def new_context(**kw):
-        c = _new_ctx(**kw); block_cf(c); return c
+    def new_context(fresh=False, **kw):
+        c = _new_ctx(**kw); block_cf(c)
+        if not fresh: c.add_init_script("localStorage.setItem('ttb.landed','1'); localStorage.setItem('ttb.toured','1')")  # 老用户：跳过落地页和引导
+        return c
     b.new_context = new_context
     pg = b.new_context(viewport={'width': 1280, 'height': 800}).new_page()
     cf_req = []; pg.on('request', lambda r: 'cloudflareinsights' in r.url and cf_req.append(r.url))
@@ -274,6 +276,27 @@ with sync_playwright() as p:
     fp2.goto('http://127.0.0.1:8766/index.html'); fp2.wait_for_selector('#review canvas')
     fp2.reload(); fp2.wait_for_selector('.bubble'); fp2.wait_for_timeout(500); assert fp2.locator('#review').count() == 0
     fri.close(); print('本周回顾 OK（统计 / 下载 PNG / 周五自动弹一次）', st)
+    # 首次访问：落地页 -> 7 步引导（下一步 / 跳过），只出现一次，可从使用须知重开
+    oc = b.new_context(fresh=True, viewport={'width': 1280, 'height': 800}); op = oc.new_page()
+    op.on('console', lambda m: m.type == 'error' and errors.append(m.text)); op.on('pageerror', lambda e: errors.append(str(e)))
+    op.goto('http://127.0.0.1:8766/index.html'); op.wait_for_selector('#landing:not([hidden])')
+    assert op.inner_text('#landing h1') == '思绪垃圾桶' and op.inner_text('#land-enter') == '进入垃圾桶 →' and '这是什么' in op.inner_text('#landing')
+    op.screenshot(path=os.path.join(ROOT, 'docs', 'landing.png'))
+    op.click('#land-enter'); op.wait_for_selector('#tour-tip')
+    assert '想到什么就写在这张卡片上' in op.inner_text('#tour-tip') and op.locator('.bubble.tour-mark').count() == 1
+    seen = []
+    for i in range(10):
+        seen.append(op.inner_text('#tour-tip p'))
+        if i == 2: op.wait_for_timeout(400); op.screenshot(path=os.path.join(ROOT, 'docs', 'onboarding.png'))
+        btn = op.locator('#tour-tip .next')
+        if btn.inner_text() == '开始扔吧': btn.click(); break
+        btn.click()
+    assert len(seen) == 7 and '随时点这里' in seen[-1] and op.locator('#tour-tip').count() == 0 and op.locator('.tour-mark').count() == 0, seen
+    op.reload(); op.wait_for_selector('.bubble'); op.wait_for_timeout(600)
+    assert op.locator('#landing').is_hidden() and op.locator('#tour-tip').count() == 0, '回访应自动跳过'
+    op.hover('#btn-help'); op.wait_for_selector('#help-pop.show'); op.click('#help-tour'); op.wait_for_selector('#tour-tip')
+    op.click('#tour-tip .skip'); assert op.locator('#tour-tip').count() == 0
+    oc.close(); print('落地页 + 引导（7 步 / 跳过 / 只一次 / 可重开）OK')
     # 回归：删除按钮（不依赖原生 confirm，Playwright 默认会自动取消原生弹窗 = 用户看到的「点了没反应」）
     # + 窗口较矮时第二次打开列表不能是空白（列表区曾被挤成 0 高度）
     dc = b.new_context(viewport={'width': 1280, 'height': 600}); dp = dc.new_page()

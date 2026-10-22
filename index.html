@@ -15,6 +15,7 @@
   <button id="btn-settings">⚙ 设置</button>
   <button id="btn-help" aria-label="使用须知：所有操作和快捷键">❓ 使用须知</button>
 </nav>
+<div id="hero" aria-label="简介"><span class="brand">🗑️ 思绪垃圾桶</span><p class="headline">烦心事、灵感、心里话，写下来，扔进桶里。</p><p class="sub">拖进垃圾桶就保存，双击桶有惊喜。数据只存在你自己的浏览器里。</p></div>
 <main id="stage" title="点空白处写一条新想法"></main>
 <button id="btn-add" title="新建对话框（快捷键 N 或 Ctrl+Alt+N）">+</button>
 <div id="trash-wrap">
@@ -55,6 +56,21 @@
   <div id="panel-body"></div>
 </aside>
 <div id="toast"></div>
+<section id="landing" hidden>
+  <div class="land-box">
+    <h1>思绪垃圾桶</h1>
+    <p class="land-intro">烦心事、灵感、心里话，写下来，扔进桶里。</p>
+    <button id="land-enter">进入垃圾桶 →</button>
+    <p class="land-small">免费，不用注册，内容只存在你自己的浏览器里。</p>
+    <div class="land-more">
+      <h2>这是什么</h2>
+      <p>一个会“吃”想法的网页垃圾桶：把脑子里乱糟糟的念头写在卡片上，拖进桶里就自动保存。之后可以搜索、导出、每周生成一张回顾图，也能一键交给 DeepSeek 等 AI 帮你理成要做的事。</p>
+      <h2>适合谁</h2>
+      <p>上班时脑子停不下来的打工人、想随手记灵感又懒得开笔记软件的人、需要找个地方吐槽和说心里话的人。</p>
+    </div>
+    <a href="#" id="land-skip">跳过</a>
+  </div>
+</section>
 <script type="module" src="js/main.js"></script>
 <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "836cdbf924a947f6913b8a072fdf0786"}'></script>
 </body>
