@@ -184,3 +184,11 @@ pre.result{white-space:pre-wrap;background:#fff;border:2px solid #ddd;padding:8p
 #backup-nudge button{font-size:12px;padding:1px 8px;border-width:2px;box-shadow:none}
 #backup-nudge .x{padding:0 5px}
 #help-pop .help-title .ver{font-size:11px;font-weight:normal;color:#9a7b4f;margin-left:4px}
+
+/* 作者链接：小字、淡色，放在左下角，宽度限制在垃圾桶左边，不压桶 */
+#author{position:fixed;left:8px;bottom:6px;z-index:5;max-width:calc(50vw - min(110px,15vw) - 20px);font-size:11px;line-height:1.4;color:#9a7b4f;opacity:.75;pointer-events:none}
+#author a,.author-links a{color:inherit;text-decoration:none;pointer-events:auto}
+#author a:hover,.author-links a:hover{text-decoration:underline}
+#author:hover{opacity:1}
+#landing .land-author{font-size:11px;color:#9a7b4f;margin:8px 0 0;opacity:.85}
+#help-pop .help-contact{margin:4px 0 0}#help-pop .help-contact a{color:#5a3e1b}

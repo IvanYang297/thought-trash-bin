@@ -303,6 +303,8 @@ with sync_playwright() as p:
     op.goto('http://127.0.0.1:8766/index.html'); op.wait_for_selector('#landing:not([hidden])')
     assert op.inner_text('#landing h1') == '思绪垃圾桶' and op.inner_text('#land-enter') == '进入垃圾桶 →' and '这是什么' in op.inner_text('#landing')
     op.screenshot(path=os.path.join(ROOT, 'docs', 'landing.png'))
+    la = op.locator('#landing .land-author a').evaluate_all('as => as.map(a => [a.href, a.target, a.rel])')
+    assert la == [['https://x.com/PinkY63990316?utm_source=ttb', '_blank', 'noopener'], ['https://github.com/IvanYang297', '_blank', 'noopener']], la; print('欢迎页作者链接 OK')
     op.click('#land-enter'); op.wait_for_selector('#tour-tip')
     assert '想到什么就写在这张卡片上' in op.inner_text('#tour-tip') and op.locator('.bubble.tour-mark').count() == 1
     seen = []
@@ -361,6 +363,19 @@ with sync_playwright() as p:
     vals = fp.locator('.bubble textarea').evaluate_all('ts => ts.map(t => [t.value, t.placeholder])')
     assert vals and all(v == '' and ph for v, ph in vals), vals
     assert fp.get_attribute('#trash', 'data-state') == 'happy' and float(fp.get_attribute('#trash', 'data-mood')) == 0 and 'Q120.0 192.0' in fp.get_attribute('#mouth-smile', 'd')
+    X, G = 'https://x.com/PinkY63990316?utm_source=ttb', 'https://github.com/IvanYang297'
+    def ov(a, c): return not (a['x'] + a['width'] <= c['x'] or c['x'] + c['width'] <= a['x'] or a['y'] + a['height'] <= c['y'] or c['y'] + c['height'] <= a['y'])
+    def author_ok(pg):
+        hr = pg.locator('#author a').evaluate_all('as => as.map(a => [a.href, a.target, a.rel, a.textContent])')
+        assert hr == [[X, '_blank', 'noopener', '𝕏 @PinkY63990316'], [G, '_blank', 'noopener', 'GitHub @IvanYang297']], hr
+        assert '做这个垃圾桶的人' in pg.text_content('#author')
+        fb = pg.locator('#author').bounding_box()
+        for sel in ['#trash-wrap', '#toolbar', '#btn-add'] + [f'.bubble >> nth={i}' for i in range(pg.locator('.bubble').count())]:
+            assert not ov(fb, pg.locator(sel).bounding_box()), (sel, fb)
+        assert fb['height'] < 80 and float(pg.evaluate("getComputedStyle(document.querySelector('#author')).fontSize").rstrip('px')) <= 12
+        hp = pg.locator('#help-pop .help-contact a'); assert hp.get_attribute('href') == X and hp.text_content() == '有想法、遇到问题？来 X 找我聊。'
+        return fb
+    print('作者链接 OK（桌面）', author_ok(fp))
     fp.evaluate('document.activeElement.blur()'); fp.wait_for_timeout(500)
     fp.screenshot(path=os.path.join(ROOT, 'docs', 'screenshot.png'))
     fp.click('#btn-list'); fp.wait_for_timeout(200); eb = fp.locator('#panel').bounding_box()
@@ -372,6 +387,7 @@ with sync_playwright() as p:
     ms = mp.locator('.bubble .tag-picker button').first.evaluate("b => [b.getBoundingClientRect().width, parseFloat(getComputedStyle(b.querySelector('.tg')).fontSize)]")
     assert ms[0] >= 48 and ms[1] >= 24, ms
     mp.locator('.bubble [data-tag=rant]').first.tap(force=True); mp.wait_for_timeout(200)
+    print('作者链接 OK（手机 390）', author_ok(mp))
     assert mp.text_content('#tag-tip') == '已选：吐槽'; mob.close(); print('触屏大按钮 + 点按提示 OK', ms)
     print('默认状态全为空提示语 OK:', [ph for _, ph in vals])
     b.close()

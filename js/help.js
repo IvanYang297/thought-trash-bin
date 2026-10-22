@@ -15,7 +15,7 @@ export function initHelpPopover(btn, onTour) {
   pop.id = 'help-pop'; pop.setAttribute('role', 'tooltip'); pop.tabIndex = -1;
   pop.innerHTML = `<div class="help-title">使用须知 <span class="ver">v1.1.1</span></div>` + SECTIONS.map(([h, items]) =>
     `<section><h4>${h}</h4>${items.map(i => `<p>${i}</p>`).join('')}</section>`).join('') +
-    `<p class="help-tour"><button id="help-tour">🧭 再看一遍新手引导</button></p><p class="help-foot">除了 AI 整理，全部可离线使用<br>本站使用 Cloudflare Web Analytics，仅用于匿名访问统计，不上传任何想法内容。</p>`;
+    `<p class="help-tour"><button id="help-tour">🧭 再看一遍新手引导</button></p><p class="help-foot">除了 AI 整理，全部可离线使用<br>本站使用 Cloudflare Web Analytics，仅用于匿名访问统计，不上传任何想法内容。</p><p class="help-contact"><a href="https://x.com/PinkY63990316?utm_source=ttb" target="_blank" rel="noopener">有想法、遇到问题？来 X 找我聊。</a></p>`;
   document.body.appendChild(pop);
   pop.querySelector('#help-tour').onclick = () => { pop.classList.remove('show'); onTour?.(); };
   btn.setAttribute('aria-describedby', 'help-pop'); btn.removeAttribute('title');

@@ -1,5 +1,7 @@
 # 🗑️ 思绪垃圾桶
 
+作者：[@IvanYang297](https://github.com/IvanYang297) ｜ X：[@PinkY63990316](https://x.com/PinkY63990316)
+
 一个把乱糟糟的想法、上班吐槽、心里话随手“丢掉”的小网页。丢进去的东西不会消失，而是存成 Markdown 文件，需要时还能让 AI 帮你整理成计划。
 
 ![截图](docs/screenshot.png)
