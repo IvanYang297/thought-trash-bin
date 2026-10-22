@@ -1,6 +1,7 @@
 // 本周回顾卡片：统计本周各标签数量，画在 canvas 上，可下载 PNG；每周五自动弹一次
 import { TAGS } from './tags.js';
 const SEEN = 'ttb.reviewSeenWeek';
+export const SITE = 'https://thought-trash-bin.pages.dev/';
 export function weekStart(d = new Date()) { const s = new Date(d); s.setHours(0, 0, 0, 0); s.setDate(s.getDate() - ((s.getDay() + 6) % 7)); return s; }
 const key = d => { const s = weekStart(d); return `${s.getFullYear()}-${s.getMonth() + 1}-${s.getDate()}`; };
 export function weekStats(notes, now = new Date()) {
@@ -41,12 +42,21 @@ export function showReview(notes, now = new Date()) {
   document.getElementById('review')?.remove();
   const st = weekStats(notes, now);
   const ov = document.createElement('div'); ov.id = 'review';
-  ov.innerHTML = `<div class="review-box"><canvas></canvas><div class="row"><button id="review-dl">⬇ 下载 PNG</button><button id="review-close">关闭</button></div></div>`;
+  ov.innerHTML = `<div class="review-box"><canvas></canvas><div class="row"><button id="review-share">📤 分享</button><button id="review-dl">⬇ 下载 PNG</button><button id="review-close">关闭</button></div></div>`;
   document.body.appendChild(ov);
   const cv = ov.querySelector('canvas'); drawCard(cv, st);
   ov.querySelector('#review-close').onclick = () => ov.remove();
   ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
   ov.querySelector('#review-dl').onclick = () => { const a = document.createElement('a'); a.href = cv.toDataURL('image/png'); a.download = `本周回顾-${key(now)}.png`; a.click(); };
+  // 分享：支持系统分享（手机等）就带图片分享；否则下载图片 + 复制网址
+  ov.querySelector('#review-share').onclick = () => cv.toBlob(async blob => {
+    const name = `本周回顾-${key(now)}.png`, file = new File([blob], name, { type: 'image/png' });
+    const data = { files: [file], title: '本周思绪回顾', text: `这周我往思绪垃圾桶里丢了 ${st.total} 条想法 ${SITE}` };
+    if (navigator.canShare?.(data)) { try { await navigator.share(data); } catch {} return; }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    let ok = false; try { await navigator.clipboard.writeText(SITE); ok = true; } catch {}
+    window.dispatchEvent(new CustomEvent('ttb-toast', { detail: ok ? '图片已下载，网址已复制，发给朋友吧～' : '图片已下载，网址：' + SITE }));
+  }, 'image/png');
   localStorage.setItem(SEEN, key(now));
   return st;
 }

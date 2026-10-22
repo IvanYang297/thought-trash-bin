@@ -17,6 +17,7 @@ import { initLanding, startTour } from './tour.js';
 const $ = s => document.querySelector(s);
 export function toast(msg, ms = 2200) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), ms); }
 
+addEventListener('ttb-toast', e => toast(e.detail, 3000));
 initBanner($('#banner'));
 trash.initTrash({ onBurst: async () => explode(await store.listNotes(), trash.trashCenter()) });
 initBubbles($('#stage'), {

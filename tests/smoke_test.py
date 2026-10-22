@@ -259,7 +259,25 @@ with sync_playwright() as p:
     pg.click('#btn-review'); pg.wait_for_selector('#review canvas')
     with pg.expect_download() as dl: pg.click('#review-dl')
     dl.value.save_as(os.path.join(ROOT, 'docs', 'review-card.png'))
-    assert os.path.getsize(os.path.join(ROOT, 'docs', 'review-card.png')) > 10000; pg.click('#review-close')
+    assert os.path.getsize(os.path.join(ROOT, 'docs', 'review-card.png')) > 10000
+    # 分享：不支持系统分享时 -> 下载 PNG + 复制网址
+    pg.evaluate("window.__clip = ''; Object.defineProperty(navigator, 'canShare', { configurable: true, value: undefined }); Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async t => { window.__clip = t; } } })")
+    with pg.expect_download() as dl2: pg.click('#review-share')
+    assert dl2.value.suggested_filename.endswith('.png'); pg.wait_for_timeout(200)
+    assert pg.evaluate('window.__clip') == 'https://thought-trash-bin.pages.dev/' and '网址已复制' in pg.text_content('#toast')
+    # 支持系统分享时 -> navigator.share 带 PNG 文件
+    pg.evaluate("() => { window.__shared = null; Object.defineProperty(navigator, 'canShare', { configurable: true, value: d => !!(d && d.files) }); Object.defineProperty(navigator, 'share', { configurable: true, value: async d => { window.__shared = [d.files[0].type, d.files[0].size, d.text]; } }); }")
+    pg.click('#review-share'); pg.wait_for_function('window.__shared')
+    sh = pg.evaluate('window.__shared'); assert sh[0] == 'image/png' and sh[1] > 10000 and 'pages.dev' in sh[2], sh
+    pg.click('#review-close'); print('本周回顾分享 OK（系统分享 / 下载+复制网址）')
+    # SEO 基础
+    meta = pg.evaluate("() => Object.fromEntries([...document.querySelectorAll('meta[name],meta[property]')].map(m => [m.getAttribute('name') || m.getAttribute('property'), m.content]))")
+    assert '会“吃”想法' in meta['description'] and meta['og:image'] == 'https://thought-trash-bin.pages.dev/assets/og-image.png' and meta['twitter:card'] == 'summary_large_image', meta
+    import urllib.request
+    for f in ('robots.txt', 'sitemap.xml', 'favicon.svg', 'favicon.png', 'assets/og-image.png', 'assets/apple-touch-icon.png'):
+        assert urllib.request.urlopen('http://127.0.0.1:8766/' + f).status == 200, f
+    assert Image.open(os.path.join(ROOT, 'assets', 'og-image.png')).size == (1200, 630)
+    print('SEO：description / OG / Twitter / favicon / robots / sitemap OK')
     st = pg.evaluate("async () => { const r = await import('/js/review.js'), s = await import('/js/storage.js'); return r.weekStats(await s.listNotes()); }")
     assert st['total'] == 100 and st['by'] == {'rant': 5, 'idea': 5, 'heart': 4, 'none': 86}, st
     # 反向：全部整理完 -> 平滑变回笑脸

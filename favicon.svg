@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-2 28 244 244">
+<g class="can state-smile"><g id="body"><ellipse cx="120" cy="266" rx="74" ry="8" fill="#2f4a3c" opacity=".15"/>
+ <rect x="62" y="248" width="22" height="14" rx="7" fill="#86c4a6" stroke="#2f4a3c" stroke-width="4"/><rect x="156" y="248" width="22" height="14" rx="7" fill="#86c4a6" stroke="#2f4a3c" stroke-width="4"/>
+ <path d="M48 100 H192 L180 250 Q179 258 170 258 H70 Q61 258 60 250 Z" fill="#a8dcc0" stroke="#2f4a3c" stroke-width="5" stroke-linejoin="round"/>
+ <path d="M60 104 L66 200" stroke="#bfe8d2" stroke-width="7" stroke-linecap="round" opacity=".9"/>
+ <rect x="42" y="96" width="156" height="18" rx="9" fill="#86c4a6" stroke="#2f4a3c" stroke-width="5"/>
+ <path d="M96 214 v24 M120 214 v26 M144 214 v24" stroke="#86c4a6" stroke-width="5" stroke-linecap="round"/></g><g id="lid" class="lid"><path d="M40 92 Q40 50 120 46 Q200 50 200 92 Z" fill="#a8dcc0" stroke="#2f4a3c" stroke-width="5" stroke-linejoin="round"/>
+ <path d="M64 78 Q72 60 100 56" stroke="#bfe8d2" stroke-width="6" fill="none" stroke-linecap="round"/>
+ <rect x="104" y="32" width="32" height="16" rx="8" fill="#86c4a6" stroke="#2f4a3c" stroke-width="5"/>
+ <rect x="36" y="86" width="168" height="12" rx="6" fill="#86c4a6" stroke="#2f4a3c" stroke-width="5"/></g><g id="face" class="face">
+ <g id="brows" style="opacity:0">
+  <path id="brow-l" d="M78 132 L100 140" stroke="#2f4a3c" stroke-width="4.5" stroke-linecap="round"/>
+  <path id="brow-r" d="M162 132 L140 140" stroke="#2f4a3c" stroke-width="4.5" stroke-linecap="round"/></g>
+ <g id="eye-l" class="eye" style="transform-origin:94px 156px"><g><ellipse cx="94" cy="156" rx="9" ry="11" fill="#2f4a3c"/><circle cx="97" cy="151" r="3" fill="#fff"/></g></g>
+ <g id="eye-r" class="eye" style="transform-origin:146px 156px"><g><ellipse cx="146" cy="156" rx="9" ry="11" fill="#2f4a3c"/><circle cx="149" cy="151" r="3" fill="#fff"/></g></g>
+ <ellipse id="cheek-l" cx="76" cy="176" rx="10" ry="6" fill="#f4a3a3" opacity="0.7"/>
+ <ellipse id="cheek-r" cx="164" cy="176" rx="10" ry="6" fill="#f4a3a3" opacity="0.7"/>
+ <path id="mouth-smile" d="M106 176 Q120 192 134 176" stroke="#2f4a3c" stroke-width="4.5" fill="none" stroke-linecap="round" style="opacity:1"/>
+ <path id="mouth-frown" d="M106 188 Q120 174 134 188" stroke="#2f4a3c" stroke-width="4.5" fill="none" stroke-linecap="round" style="opacity:0"/>
+ <path id="sweat" d="M172 128 q6 10 0 14 q-6 -4 0 -14Z" fill="#9fd3f0" stroke="#2f4a3c" stroke-width="2" style="opacity:0"/>
+</g></g>
+</svg>

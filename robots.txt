@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://thought-trash-bin.pages.dev/sitemap.xml
