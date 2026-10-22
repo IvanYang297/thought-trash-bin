@@ -19,6 +19,7 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:locale:alternate" content="en_US">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="思绪垃圾桶">
 <meta name="twitter:description" content="一个会“吃”想法的垃圾桶：随手写、拖进去、每周看回顾，还能交给 AI 帮你理清。免费，不用注册。">
@@ -26,20 +27,21 @@
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-<header id="banner" aria-label="吐槽横幅"><div id="banner-track"></div></header>
+<header id="banner" aria-label="吐槽横幅" data-i18n-aria="banner.aria"><div id="banner-track"></div></header>
 <nav id="toolbar">
-  <button id="btn-list">📜 想法列表</button>
-  <button id="btn-review" title="本周回顾卡片（每周五自动弹出）">📅 本周回顾</button>
-  <button id="btn-ai">🤖 AI整理</button>
-  <button id="btn-backup" title="把全部想法导出成一个 .md 文件，换浏览器或清缓存也不怕丢">💾 导出备份</button>
-  <button id="btn-settings">⚙ 设置</button>
-  <button id="btn-help" aria-label="使用须知：所有操作和快捷键">❓ 使用须知</button>
+  <button id="btn-list" data-i18n="tb.list">📜 想法列表</button>
+  <button id="btn-review" title="本周回顾卡片（每周五自动弹出）" data-i18n="tb.review" data-i18n-title="tb.review.title">📅 本周回顾</button>
+  <button id="btn-ai" data-i18n="tb.ai">🤖 AI整理</button>
+  <button id="btn-backup" title="把全部想法导出成一个 .md 文件，换浏览器或清缓存也不怕丢" data-i18n="tb.backup" data-i18n-title="tb.backup.title">💾 导出备份</button>
+  <button id="btn-settings" data-i18n="tb.settings">⚙ 设置</button>
+  <button id="btn-help" aria-label="使用须知：所有操作和快捷键" data-i18n="tb.help" data-i18n-aria="tb.help.aria">❓ 使用须知</button>
+  <button id="btn-lang" class="lang-toggle" aria-label="切换语言 / Switch language"><span class="cur">中</span> / <span>EN</span></button>
 </nav>
-<div id="hero" aria-label="简介"><span class="brand">🗑️ 思绪垃圾桶</span><p class="headline">烦心事、灵感、心里话，写下来，扔进桶里。</p><p class="sub">拖进垃圾桶就保存，双击桶有惊喜。数据只存在你自己的浏览器里。</p></div>
-<main id="stage" title="点空白处写一条新想法"></main>
-<button id="btn-add" title="新建对话框（快捷键 N 或 Ctrl+Alt+N）">+</button>
+<div id="hero" aria-label="简介" data-i18n-aria="hero.aria"><span class="brand" data-i18n="hero.brand">🗑️ 思绪垃圾桶</span><p class="headline" data-i18n="hero.headline">烦心事、灵感、心里话，写下来，扔进桶里。</p><p class="sub" data-i18n="hero.sub">拖进垃圾桶就保存，双击桶有惊喜。数据只存在你自己的浏览器里。</p></div>
+<main id="stage" title="点空白处写一条新想法" data-i18n-title="stage.title"></main>
+<button id="btn-add" title="新建对话框（快捷键 N 或 Ctrl+Alt+N）" data-i18n-title="add.title">+</button>
 <div id="trash-wrap">
-  <div id="trash" title="把对话框拖进来；双击或狂点有惊喜">
+  <div id="trash" title="把对话框拖进来；双击或狂点有惊喜" data-i18n-title="trash.title">
     <svg viewBox="0 0 240 280" width="100%" height="100%" aria-hidden="true" overflow="visible">
 <!-- 美术：assets/can/。四个状态合成一个内联 SVG，由 #trash[data-state] 切换 -->
 <g class="can"><g id="body"><ellipse cx="120" cy="266" rx="74" ry="8" fill="#2f4a3c" opacity=".15"/>
@@ -69,28 +71,29 @@
 </g></g>
 </svg>
   </div>
-  <div id="counter">已吃掉 <b id="count">0</b> 条</div>
+  <div id="counter"><span data-i18n="counter.pre">已吃掉</span> <b id="count">0</b> <span data-i18n="counter.post">条</span></div>
 </div>
 <aside id="panel" class="hidden">
-  <div class="panel-head"><h2 id="panel-title">想法列表</h2><button id="panel-close">✕</button></div>
+  <div class="panel-head"><h2 id="panel-title">想法列表</h2><button id="panel-close" aria-label="关闭" data-i18n-aria="panel.close">✕</button></div>
   <div id="panel-body"></div>
 </aside>
 <div id="toast"></div>
-<footer id="author" class="author-links">做这个垃圾桶的人：<a href="https://x.com/PinkY63990316?utm_source=ttb" target="_blank" rel="noopener">𝕏 @PinkY63990316</a> · <a href="https://github.com/IvanYang297" target="_blank" rel="noopener">GitHub @IvanYang297</a></footer>
+<footer id="author" class="author-links"><a class="ico" href="https://x.com/PinkY63990316?utm_source=ttb" target="_blank" rel="noopener" title="来 X 找我聊" aria-label="来 X 找我聊" data-i18n-title="author.x" data-i18n-aria="author.x"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M18.9 2H22l-6.8 7.8L23 22h-6.3l-4.9-6.4L6.2 22H3l7.3-8.4L1 2h6.4l4.4 5.9L18.9 2zm-1.1 18h1.7L6.3 3.9H4.5L17.8 20z"/></svg></a><a class="ico" href="https://github.com/IvanYang297" target="_blank" rel="noopener" title="看看源码" aria-label="看看源码" data-i18n-title="author.gh" data-i18n-aria="author.gh"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M12 .5a11.5 11.5 0 0 0-3.6 22.4c.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.2 1.2a11 11 0 0 1 5.8 0c2.2-1.5 3.2-1.2 3.2-1.2.6 1.6.2 2.8.1 3.1.8.8 1.2 1.9 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A11.5 11.5 0 0 0 12 .5z"/></svg></a></footer>
 <section id="landing" hidden>
   <div class="land-box">
-    <h1>思绪垃圾桶</h1>
-    <p class="land-intro">烦心事、灵感、心里话，写下来，扔进桶里。</p>
-    <button id="land-enter">进入垃圾桶 →</button>
-    <p class="land-small">免费，不用注册，内容只存在你自己的浏览器里。</p>
+    <button id="land-lang" class="lang-toggle" aria-label="切换语言 / Switch language"><span class="cur">中</span> / <span>EN</span></button>
+    <h1 data-i18n="land.title">思绪垃圾桶</h1>
+    <p class="land-intro" data-i18n="land.intro">烦心事、灵感、心里话，写下来，扔进桶里。</p>
+    <button id="land-enter" data-i18n="land.enter">进入垃圾桶 →</button>
+    <p class="land-small" data-i18n="land.small">免费，不用注册，内容只存在你自己的浏览器里。</p>
     <div class="land-more">
-      <h2>这是什么</h2>
-      <p>一个会“吃”想法的网页垃圾桶：把脑子里乱糟糟的念头写在卡片上，拖进桶里就自动保存。之后可以搜索、导出、每周生成一张回顾图，也能一键交给 DeepSeek 等 AI 帮你理成要做的事。</p>
-      <h2>适合谁</h2>
-      <p>上班时脑子停不下来的打工人、想随手记灵感又懒得开笔记软件的人、需要找个地方吐槽和说心里话的人。</p>
+      <h2 data-i18n="land.what.h">这是什么</h2>
+      <p data-i18n="land.what.p">一个会“吃”想法的网页垃圾桶：把脑子里乱糟糟的念头写在卡片上，拖进桶里就自动保存。之后可以搜索、导出、每周生成一张回顾图，也能一键交给 DeepSeek 等 AI 帮你理成要做的事。</p>
+      <h2 data-i18n="land.who.h">适合谁</h2>
+      <p data-i18n="land.who.p">上班时脑子停不下来的打工人、想随手记灵感又懒得开笔记软件的人、需要找个地方吐槽和说心里话的人。</p>
     </div>
-    <a href="#" id="land-skip">跳过</a>
-    <p class="land-author author-links">做这个垃圾桶的人：<a href="https://x.com/PinkY63990316?utm_source=ttb" target="_blank" rel="noopener">𝕏 @PinkY63990316</a> · <a href="https://github.com/IvanYang297" target="_blank" rel="noopener">GitHub @IvanYang297</a></p>
+    <a href="#" id="land-skip" data-i18n="land.skip">跳过</a>
+    <p class="land-author author-links"><a class="ico" href="https://x.com/PinkY63990316?utm_source=ttb" target="_blank" rel="noopener" title="来 X 找我聊" aria-label="来 X 找我聊" data-i18n-title="author.x" data-i18n-aria="author.x"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M18.9 2H22l-6.8 7.8L23 22h-6.3l-4.9-6.4L6.2 22H3l7.3-8.4L1 2h6.4l4.4 5.9L18.9 2zm-1.1 18h1.7L6.3 3.9H4.5L17.8 20z"/></svg></a><a class="ico" href="https://github.com/IvanYang297" target="_blank" rel="noopener" title="看看源码" aria-label="看看源码" data-i18n-title="author.gh" data-i18n-aria="author.gh"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M12 .5a11.5 11.5 0 0 0-3.6 22.4c.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.2 1.2a11 11 0 0 1 5.8 0c2.2-1.5 3.2-1.2 3.2-1.2.6 1.6.2 2.8.1 3.1.8.8 1.2 1.9 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A11.5 11.5 0 0 0 12 .5z"/></svg></a></p>
   </div>
 </section>
 <script type="module" src="js/main.js"></script>

@@ -1,3 +1,4 @@
+import { t } from './i18n.js';
 // 越吃越满：按「未经 AI 整理」的想法条数切换垃圾桶状态（美术见 assets/can/）
 //   0：笑脸   ≥1：苦脸   ≥20：盖子合不上、纸团从盖沿挤出 + 打嗝   ≥100：纸团狂喷、盖子拉锯
 // 纸团只出现在盖子/桶口附近（y < 110），脸在 y 128 以下，不会被挡住。
@@ -14,10 +15,10 @@ export function renderPile(unsorted, { afterChew = false } = {}) {
 }
 export function shouldBurp(unsorted) { return unsorted >= FULL_AT && (unsorted - FULL_AT) % 5 === 0; }
 export function burp(toast) {
-  const t = document.getElementById('trash');
-  t.classList.remove('burp'); void t.offsetWidth; t.classList.add('burp');
-  const s = document.createElement('div'); s.className = 'burp-bubble'; s.textContent = '嗝～';
+  const tb = document.getElementById('trash');
+  tb.classList.remove('burp'); void tb.offsetWidth; tb.classList.add('burp');
+  const s = document.createElement('div'); s.className = 'burp-bubble'; s.textContent = t('burp.bubble');
   document.getElementById('trash-wrap').appendChild(s); setTimeout(() => s.remove(), 1600);
-  setTimeout(() => t.classList.remove('burp'), 1200);
-  toast(`嗝～桶里有 ${FULL_AT} 条以上没整理的想法了，去「AI整理」理一理吧！`, 4000);
+  setTimeout(() => tb.classList.remove('burp'), 1200);
+  toast(t('burp.toast', { n: FULL_AT }), 4000);
 }

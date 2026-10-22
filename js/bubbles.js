@@ -1,10 +1,15 @@
+import { t } from './i18n.js';
 import { attachTagPicker } from './tags.js';
 // 冒险岛风格漂浮对话框：可输入、可拖动；拖进垃圾桶或三连击就保存
-// 空对话框里的淡色提示语（只是 placeholder，永远不会被保存）
-export const HINTS = ['想到啥写啥…', '吐个槽吧…', '心里话放这里…', '老板今天又说啥了？', '脑子里乱糟糟的，倒出来吧…', '一个突发奇想…', '今天最想吐槽的一件事…', '偷偷写，桶不会说出去的～'];
+// 空对话框里的淡色提示语（只是 placeholder，永远不会被保存）：见 i18n.js 的 bubble.hints
 export const MAX_BUBBLES = 10;
 const TRIPLE_MS = 600;
-let hintIdx = Math.floor(Math.random() * HINTS.length);
+let hintIdx = Math.floor(Math.random() * 8);
+const hintFor = b => { const h = t('bubble.hints'); return h[b.dataset.hint % h.length]; };
+// 切换语言：只改提示文字，不动用户已输入的内容
+export function relabelBubbles() {
+  document.querySelectorAll('#stage .bubble').forEach(b => { b.querySelector('.grip-t').textContent = t('bubble.grip'); b.querySelector('.close').title = t('bubble.close'); b.querySelector('textarea').placeholder = hintFor(b); });
+}
 let opts;
 export function initBubbles(stage, o) {
   // o: { getTrashRect(), inTrash(rect,x,y), onHover(bool), onDrop(el,text,tag), onEmpty(), onLimit(), trashCenter() }
@@ -22,8 +27,9 @@ export function createBubble(x, y) {
   b.className = 'bubble';
   b.style.left = x + 'px'; b.style.top = y + 'px';
   b.style.animationDelay = (-Math.random() * 3).toFixed(2) + 's';
-  b.innerHTML = `<div class="grip"><span>⠿ 拖我进垃圾桶</span><span class="close" title="不要了">✕</span></div>
-    <textarea placeholder="${HINTS[hintIdx++ % HINTS.length]}"></textarea>`;
+  b.innerHTML = `<div class="grip"><span class="grip-t">${t('bubble.grip')}</span><span class="close" title="${t('bubble.close')}">✕</span></div>
+    <textarea></textarea>`;
+  b.dataset.hint = hintIdx++; b.querySelector('textarea').placeholder = hintFor(b);
   attachTagPicker(b);
   stage.appendChild(b);
   b.querySelector('.close').addEventListener('click', e => { e.stopPropagation(); b.remove(); });

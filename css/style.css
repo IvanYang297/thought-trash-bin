@@ -192,3 +192,11 @@ pre.result{white-space:pre-wrap;background:#fff;border:2px solid #ddd;padding:8p
 #author:hover{opacity:1}
 #landing .land-author{font-size:11px;color:#9a7b4f;margin:8px 0 0;opacity:.85}
 #help-pop .help-contact{margin:4px 0 0}#help-pop .help-contact a{color:#5a3e1b}
+/* v1.2 语言切换 */
+.lang-toggle{white-space:nowrap}.lang-toggle span{opacity:.55}.lang-toggle span.cur{opacity:1;font-weight:bold}
+#landing .land-box{position:relative}#land-lang{position:absolute;top:10px;right:10px;font-size:12px;padding:2px 8px}
+#toolbar button{white-space:nowrap}
+.author-links{display:flex;gap:10px;align-items:center}#landing .land-author{justify-content:center}
+.author-links a.ico{display:inline-flex;padding:3px;color:#7a5e36}.author-links a.ico:hover{color:#3b2a14}
+/* 窄屏：工具栏自动换行，长的英文按钮也放得下 */
+@media (max-width:700px){#toolbar{left:8px;right:8px;flex-wrap:wrap;justify-content:flex-end;gap:6px}#toolbar button{font-size:13px;padding:4px 8px}#hero{top:140px}}

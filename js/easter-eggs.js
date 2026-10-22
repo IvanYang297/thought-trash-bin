@@ -1,10 +1,11 @@
+import { t } from './i18n.js';
 // 彩蛋：纸片从垃圾桶里爆出来，写着时间和当时的想法
 import { fmtShort } from './storage.js';
 import { tagColor, TAGS } from './tags.js';
 const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function explode(notes, origin) {
   document.querySelectorAll('.scrap').forEach(s => s.remove());
-  const list = notes.length ? notes.slice(0, 24) : [{ createdAt: Date.now(), text: '桶里空空的，先丢点想法进来吧～' }];
+  const list = notes.length ? notes.slice(0, 24) : [{ createdAt: Date.now(), text: t('egg.empty') }];
   list.forEach((n, i) => {
     const s = document.createElement('div');
     s.className = 'scrap';

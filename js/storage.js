@@ -1,3 +1,4 @@
+import { t, fmtMonthDay } from './i18n.js';
 // 存储：所有想法都存一份在 IndexedDB（用于列表/搜索）；
 // 若在 Edge/Chrome 中选择了文件夹，同时把每条写成 .md 文件。
 const DB_NAME = 'thought-trash-bin', DB_VER = 1;
@@ -27,9 +28,9 @@ const kvGet = k => tx('kv', 'readonly', s => s.get(k));
 const kvSet = (k, v) => tx('kv', 'readwrite', s => s.put(v, k));
 
 export const pad = n => String(n).padStart(2, '0');
-export function fmtShort(ts) { const d = new Date(ts); return `${d.getMonth() + 1}月${d.getDate()}日 ${pad(d.getHours())}:${pad(d.getMinutes())}`; }
+export function fmtShort(ts) { const d = new Date(ts); return `${fmtMonthDay(d)} ${pad(d.getHours())}:${pad(d.getMinutes())}`; }
 export function fmtFull(ts) { const d = new Date(ts); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`; }
-function fileName(ts, prefix = '想法') { const d = new Date(ts); return `${prefix}-${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}-${d.getMilliseconds()}.md`; }
+function fileName(ts, prefix = t('file.note')) { const d = new Date(ts); return `${prefix}-${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}-${d.getMilliseconds()}.md`; }
 export const noteToMd = n => `---\ntime: ${fmtFull(n.createdAt)}\ntag: ${n.tag || ''}\n---\n\n# ${fmtFull(n.createdAt)}\n\n${n.text}\n`;
 
 export const supportsFolder = () => 'showDirectoryPicker' in window;
@@ -86,7 +87,7 @@ export async function deleteNote(note) {
   if (dirHandle && note.inFolder) await dirHandle.removeEntry(note.file).catch(() => {});
 }
 export async function saveResult(md) {
-  const name = fileName(Date.now(), 'AI整理');
+  const name = fileName(Date.now(), t('file.ai'));
   const ok = await writeFile(name, md);
   if (!ok) download(name, md);
   return { name, inFolder: ok };
@@ -98,8 +99,8 @@ export function download(name, content) {
 }
 export async function exportAll() {
   const notes = await listNotes();
-  const md = `# 思绪垃圾桶 导出（共 ${notes.length} 条）\n\n` + notes.map(n => `## ${fmtFull(n.createdAt)}${n.tag ? ' #' + n.tag : ''}\n\n${n.text}\n`).join('\n---\n\n');
-  download(fileName(Date.now(), '全部想法'), md);
+  const md = t('export.head', { n: notes.length }) + '\n\n' + notes.map(n => `## ${fmtFull(n.createdAt)}${n.tag ? ' #' + n.tag : ''}\n\n${n.text}\n`).join('\n---\n\n');
+  download(fileName(Date.now(), t('file.all')), md);
   localStorage.setItem('ttb.exportedAt', String(Date.now())); localStorage.removeItem('ttb.nudged');
 }
 // 还没备份到文件的条数：没存进文件夹、且在上次导出之后写的

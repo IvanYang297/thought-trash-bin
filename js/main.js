@@ -1,7 +1,9 @@
+import { t, applyStatic, toggleLang } from './i18n.js';
 import { buildMysticPrompt } from './mystic-prompt.js';
 // 入口：把各模块串起来。新功能建议新建一个模块文件，再在这里接上。
 import { initBanner } from './banner.js';
-import { initBubbles, createBubble } from './bubbles.js';
+import { initBubbles, createBubble, relabelBubbles } from './bubbles.js';
+import { relabelTags } from './tags.js';
 import * as trash from './trashbin.js';
 import * as store from './storage.js';
 import * as ai from './ai.js';
@@ -18,23 +20,24 @@ import { maybeNudge } from './backup.js';
 const $ = s => document.querySelector(s);
 export function toast(msg, ms = 2200) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), ms); }
 
+applyStatic();
 addEventListener('ttb-toast', e => toast(e.detail, 3000));
 initBanner($('#banner'));
 trash.initTrash({ onBurst: async () => explode(await store.listNotes(), trash.trashCenter()) });
 initBubbles($('#stage'), {
   getTrashRect: trash.getTrashRect, inTrash: trash.inTrash, trashCenter: trash.trashCenter, onHover: trash.setHover,
-  onLimit: () => toast('最多 10 个对话框，先丢几个进桶吧～'),
-  onEmpty: () => toast('空的对话框，桶不吃哦～先写点什么吧'),
+  onLimit: () => toast(t('toast.limit')),
+  onEmpty: () => toast(t('toast.empty')),
   onDrop: async (b, text, tag) => {
     b.remove(); trash.chew();
-    try { const n = await store.saveNote(text, tag); trash.setCount(await store.countNotes()); toast(n.inFolder ? '嚼嚼嚼…已存进文件夹 📁' : '嚼嚼嚼…已存在浏览器里');
+    try { const n = await store.saveNote(text, tag); trash.setCount(await store.countNotes()); toast(n.inFolder ? t('toast.savedFolder') : t('toast.savedBrowser'));
       const u = await store.countUnsorted(); fill.renderPile(u, { afterChew: true }); if (fill.shouldBurp(u)) setTimeout(() => fill.burp(toast), 1000); refreshPanel(); maybeNudge(); }
-    catch (e) { console.error(e); toast('保存失败：' + e.message); }
+    catch (e) { console.error(e); toast(t('toast.saveFail', { msg: e.message })); }
   },
 });
 $('#btn-add').onclick = () => createBubble();
 initShortcuts(() => createBubble());
-function addBannerLine(t) { if (cb.addCustom(t)) { initBanner(); toast('已加到横幅 ✍️'); } else toast('这句已经在横幅里了（或为空）'); }
+function addBannerLine(line) { if (cb.addCustom(line)) { initBanner(); toast(t('toast.bannerAdded')); } else toast(t('toast.bannerDup')); }
 
 const panel = $('#panel'), body = $('#panel-body');
 let current = null;
@@ -69,8 +72,11 @@ $('#btn-list').onclick = () => openPanel('list');
 $('#btn-review').onclick = async () => review.showReview(await store.listNotes());
 $('#btn-ai').onclick = () => openPanel('ai');
 $('#btn-settings').onclick = () => openPanel('settings');
-$('#btn-backup').onclick = async () => { await store.exportAll(); document.getElementById('backup-nudge')?.remove(); toast('已导出全部想法（.md），存好这个文件就不怕丢'); };
+$('#btn-backup').onclick = async () => { await store.exportAll(); document.getElementById('backup-nudge')?.remove(); toast(t('toast.backupDone')); };
 initHelpPopover($('#btn-help'), () => startTour(0));
+$('#btn-lang').onclick = () => { toggleLang(); toast(t('lang.switched')); };
+// 切换语言：不刷新页面，重绘横幅 / 面板 / 对话框提示语（已输入的文字不动）
+addEventListener('ttb-lang', () => { initBanner(); relabelBubbles(); relabelTags(); if (current) { refreshPanel(); requestAnimationFrame(placePanel); } });
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
   if (document.getElementById('review')) return document.getElementById('review').remove();
@@ -79,7 +85,7 @@ document.addEventListener('keydown', e => {
 async function refreshPanel() {
   if (!current) return;
   body.classList.remove('fixed-controls');
-  $('#panel-title').textContent = { list: '想法列表', ai: 'AI 整理', settings: '设置' }[current];
+  $('#panel-title').textContent = t('panel.' + current);
   if (current === 'list') return renderList(body, async () => { trash.setCount(await store.countNotes()); fill.renderPile(await store.countUnsorted()); }, addBannerLine);
   if (current === 'ai') return renderAI();
   renderSettings();
@@ -91,42 +97,42 @@ async function pickedNotes() {
 async function renderAI() {
   const notes = await pickedNotes();
   if (current !== 'ai') return;
-  body.innerHTML = `<p>将整理 <b>${notes.length}</b> 条想法（${selected.size ? '已勾选的' : '全部；可在「想法列表」里勾选'}）。</p>
-    <div class="row"><button id="go">✨ 用 DeepSeek 整理</button><button id="copy">📋 一键复制整理提示词</button><button id="mystic">🔮 复制玄学解读提示词</button></div>
-    <p style="font-size:12px;color:#888">没有密钥？复制提示词后贴到豆包或 WorkBuddy 里用。</p><div id="out"></div>`;
-  body.querySelector('#copy').onclick = async () => { await ai.copyPrompt(notes); toast('提示词已复制，去粘贴吧～'); };
-  body.querySelector('#mystic').onclick = async () => { await ai.copyText(buildMysticPrompt(notes)); toast('提示词已复制，去粘贴吧～'); };
+  body.innerHTML = `<p>${t('ai.count', { n: notes.length, which: selected.size ? t('ai.picked') : t('ai.all') })}</p>
+    <div class="row"><button id="go">${t('ai.go')}</button><button id="copy">${t('ai.copy')}</button><button id="mystic">${t('ai.mystic')}</button></div>
+    <p style="font-size:12px;color:#888">${t('ai.noKeyHint')}</p><div id="out"></div>`;
+  body.querySelector('#copy').onclick = async () => { await ai.copyPrompt(notes); toast(t('toast.promptCopied')); };
+  body.querySelector('#mystic').onclick = async () => { await ai.copyText(buildMysticPrompt(notes)); toast(t('toast.promptCopied')); };
   body.querySelector('#go').onclick = async () => {
-    if (!notes.length) return toast('还没有想法可以整理');
-    const out = body.querySelector('#out'); out.textContent = '思考中…';
+    if (!notes.length) return toast(t('toast.noNotes'));
+    const out = body.querySelector('#out'); out.textContent = t('ai.thinking');
     try {
       const md = await ai.organize(notes);
       await store.markOrganized(notes.map(n => n.id)); fill.renderPile(await store.countUnsorted());
-      const f = await store.saveResult(`# AI 整理结果（${store.fmtFull(Date.now())}）\n\n${md}\n`);
+      const f = await store.saveResult(`# ${t('ai.resultTitle')} (${store.fmtFull(Date.now())})\n\n${md}\n`);
       out.innerHTML = ''; const pre = document.createElement('pre'); pre.className = 'result'; pre.textContent = md; out.appendChild(pre);
-      toast(f.inFolder ? `已保存到文件夹：${f.name}` : `已下载：${f.name}`);
+      toast(f.inFolder ? t('toast.savedTo', { name: f.name }) : t('toast.downloaded', { name: f.name }));
     } catch (e) { out.textContent = e.message; }
   };
 }
 function renderSettings() {
   const sf = store.supportsFolder();
-  body.innerHTML = `<h3>📁 保存位置</h3>
-    <p>${sf ? (store.folderName() ? `当前文件夹：<b>${store.folderName()}</b>` : store.needsReauth() ? '需要重新授权上次的文件夹' : '还没选文件夹，目前存在浏览器里') : '当前浏览器不支持选择文件夹，想法存在浏览器里，可在列表中导出 .md。'}</p>
-    ${sf ? `<div class="row"><button id="pick">选择文件夹</button>${store.needsReauth() ? '<button id="reauth">重新授权</button>' : ''}</div>` : ''}
-    <h3>📢 我的横幅</h3>
-    <div class="row"><input id="banner-input" placeholder="写一句你自己的吐槽…" maxlength="60" style="flex:1;font:inherit;padding:6px;border:2px solid #5a3e1b;border-radius:8px"><button id="banner-add">添加</button></div>
-    <div id="banner-mine">${cb.getCustom().map((l, i) => `<div class="note-item"><span class="txt">✍️ ${l.replace(/</g, '&lt;')}</span><button data-i="${i}" title="移除">移除</button></div>`).join('') || '<p style="font-size:12px;color:#888">还没有自定义的句子，默认文案照常播放。</p>'}</div>
-    <h3>⌨️ 快捷键</h3><p style="font-size:13px">N（不在输入时）或 Ctrl+Alt+N：新建对话框</p>
-    <h3>🔑 DeepSeek 密钥</h3>
-    <p style="font-size:12px;color:#888">只保存在本浏览器（localStorage），不会上传到别处，仅在整理时发给 DeepSeek。</p>
+  body.innerHTML = `<h3>${t('set.folder.h')}</h3>
+    <p>${sf ? (store.folderName() ? t('set.folder.cur', { name: store.folderName() }) : store.needsReauth() ? t('set.folder.reauth') : t('set.folder.none')) : t('set.folder.unsupported')}</p>
+    ${sf ? `<div class="row"><button id="pick">${t('set.folder.pick')}</button>${store.needsReauth() ? `<button id="reauth">${t('set.folder.reauthBtn')}</button>` : ''}</div>` : ''}
+    <h3>${t('set.banner.h')}</h3>
+    <div class="row"><input id="banner-input" placeholder="${t('set.banner.ph')}" maxlength="60" style="flex:1;font:inherit;padding:6px;border:2px solid #5a3e1b;border-radius:8px"><button id="banner-add">${t('set.banner.add')}</button></div>
+    <div id="banner-mine">${cb.getCustom().map((l, i) => `<div class="note-item"><span class="txt">✍️ ${l.replace(/</g, '&lt;')}</span><button data-i="${i}" title="${t('set.banner.remove')}">${t('set.banner.remove')}</button></div>`).join('') || `<p style="font-size:12px;color:#888">${t('set.banner.none')}</p>`}</div>
+    <h3>${t('set.keys.h')}</h3><p style="font-size:13px">${t('set.keys.p')}</p>
+    <h3>${t('set.key.h')}</h3>
+    <p style="font-size:12px;color:#888">${t('set.key.p')}</p>
     <input type="password" id="key" placeholder="sk-..." value="${ai.getKey()}">
-    <div class="row"><button id="save-key">保存密钥</button><button id="clear-key">清除密钥</button></div>`;
-  body.querySelector('#pick')?.addEventListener('click', async () => { try { await store.pickFolder(); toast('文件夹已选好，之后的想法会存成 .md'); renderSettings(); } catch {} });
-  body.querySelector('#reauth')?.addEventListener('click', async () => { if (await store.reauthorize()) toast('已重新授权'); renderSettings(); });
+    <div class="row"><button id="save-key">${t('set.key.save')}</button><button id="clear-key">${t('set.key.clear')}</button></div>`;
+  body.querySelector('#pick')?.addEventListener('click', async () => { try { await store.pickFolder(); toast(t('toast.folderPicked')); renderSettings(); } catch {} });
+  body.querySelector('#reauth')?.addEventListener('click', async () => { if (await store.reauthorize()) toast(t('toast.reauthed')); renderSettings(); });
   body.querySelector('#banner-add').onclick = () => { addBannerLine(body.querySelector('#banner-input').value); renderSettings(); };
-  body.querySelectorAll('#banner-mine button').forEach(btn => btn.onclick = () => { cb.removeCustom(cb.getCustom()[btn.dataset.i]); initBanner(); renderSettings(); toast('已从横幅移除'); });
-  body.querySelector('#save-key').onclick = () => { ai.setKey(body.querySelector('#key').value); toast('密钥已保存'); };
-  body.querySelector('#clear-key').onclick = () => { ai.setKey(''); renderSettings(); toast('密钥已清除'); };
+  body.querySelectorAll('#banner-mine button').forEach(btn => btn.onclick = () => { cb.removeCustom(cb.getCustom()[btn.dataset.i]); initBanner(); renderSettings(); toast(t('toast.bannerRemoved')); });
+  body.querySelector('#save-key').onclick = () => { ai.setKey(body.querySelector('#key').value); toast(t('toast.keySaved')); };
+  body.querySelector('#clear-key').onclick = () => { ai.setKey(''); renderSettings(); toast(t('toast.keyCleared')); };
 }
 
 (async () => {

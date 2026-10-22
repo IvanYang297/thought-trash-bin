@@ -1,10 +1,11 @@
+import { t } from './i18n.js';
 // 心情标签：每个对话框可选一个，随想法一起保存
 export const TAGS = {
-  rant: { emoji: '😤', name: '吐槽', color: '#ffd6d1' },
-  idea: { emoji: '💡', name: '灵感', color: '#fff2b3' },
-  heart: { emoji: '😢', name: '心里话', color: '#d6e8ff' },
+  rant: { emoji: '😤', get name() { return t('tag.rant'); }, color: '#ffd6d1' },
+  idea: { emoji: '💡', get name() { return t('tag.idea'); }, color: '#fff2b3' },
+  heart: { emoji: '😢', get name() { return t('tag.heart'); }, color: '#d6e8ff' },
 };
-export const tagLabel = t => TAGS[t] ? `${TAGS[t].emoji} ${TAGS[t].name}` : '无标签';
+export const tagLabel = k => TAGS[k] ? `${TAGS[k].emoji} ${TAGS[k].name}` : t('tag.none');
 export const tagColor = t => TAGS[t]?.color || '#fffdf3';
 // 标签提示气泡：全局一个，挂在 body 上用 fixed 定位，不会被对话框边缘裁掉
 let tip, tipTimer;
@@ -26,10 +27,11 @@ function showTip(btn, text, ms = 0) {
 function hideTip() { clearTimeout(tipTimer); tip?.classList.remove('show'); }
 const TAP_MS = 1500;
 // 在对话框里放一个小标签选择器，选中的标签记在 bubble.dataset.tag
+export function relabelTags() { document.querySelectorAll('.tag-picker button[data-tag]').forEach(b => b.setAttribute('aria-label', TAGS[b.dataset.tag].name)); hideTip(); }
 export function attachTagPicker(bubble) {
   const box = document.createElement('div');
   box.className = 'tag-picker';
-  box.innerHTML = Object.entries(TAGS).map(([k, t]) => `<button type="button" data-tag="${k}" aria-label="${t.name}"><span class="tg" aria-hidden="true">${t.emoji}</span></button>`).join('');
+  box.innerHTML = Object.entries(TAGS).map(([k, g]) => `<button type="button" data-tag="${k}" aria-label="${g.name}"><span class="tg" aria-hidden="true">${g.emoji}</span></button>`).join('');
   box.addEventListener('pointerdown', e => e.stopPropagation());
   // 鼠标悬停显示名称；触屏没有悬停，点一下时显示约 1.5 秒
   box.addEventListener('pointerover', e => { const b = e.target.closest('button'); if (b && e.pointerType === 'mouse') showTip(b, TAGS[b.dataset.tag].name); });
@@ -40,7 +42,7 @@ export function attachTagPicker(bubble) {
     bubble.dataset.tag = bubble.dataset.tag === k ? '' : k; // 再点一次取消
     box.querySelectorAll('button').forEach(b => { b.classList.toggle('on', b.dataset.tag === bubble.dataset.tag); b.setAttribute('aria-pressed', b.dataset.tag === bubble.dataset.tag); });
     bubble.style.background = bubble.dataset.tag ? tagColor(bubble.dataset.tag) : '';
-    showTip(btn, bubble.dataset.tag ? `已选：${TAGS[k].name}` : '已取消', TAP_MS);
+    showTip(btn, bubble.dataset.tag ? t('tag.picked', { name: TAGS[k].name }) : t('tag.cleared'), TAP_MS);
   });
   bubble.appendChild(box);
 }
