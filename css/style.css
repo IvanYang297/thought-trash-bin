@@ -131,6 +131,8 @@ pre.result{white-space:pre-wrap;background:#fff;border:2px solid #ddd;padding:8p
 #panel-body.fixed-controls{display:flex;flex-direction:column;overflow:hidden}
 #panel-body.fixed-controls > :not(#items){flex:none}
 #panel-body.fixed-controls #items{flex:1 1 auto;min-height:0;overflow-y:auto}
+#panel-body.fixed-controls #items:has(.note-item){min-height:110px}
+#panel-body .note-item .ask{font-size:11px;color:#b0412e;white-space:nowrap}
 #panel-body h3{font-size:12px;margin:8px 0 2px}
 #panel-body p{margin:3px 0}
 #panel-body button{font-size:12px;padding:2px 8px;border-width:2px;box-shadow:0 2px 0 #5a3e1b}

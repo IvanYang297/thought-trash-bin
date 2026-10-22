@@ -274,6 +274,27 @@ with sync_playwright() as p:
     fp2.goto('http://127.0.0.1:8766/index.html'); fp2.wait_for_selector('#review canvas')
     fp2.reload(); fp2.wait_for_selector('.bubble'); fp2.wait_for_timeout(500); assert fp2.locator('#review').count() == 0
     fri.close(); print('本周回顾 OK（统计 / 下载 PNG / 周五自动弹一次）', st)
+    # 回归：删除按钮（不依赖原生 confirm，Playwright 默认会自动取消原生弹窗 = 用户看到的「点了没反应」）
+    # + 窗口较矮时第二次打开列表不能是空白（列表区曾被挤成 0 高度）
+    dc = b.new_context(viewport={'width': 1280, 'height': 600}); dp = dc.new_page()
+    dp.on('console', lambda m: m.type == 'error' and errors.append(m.text)); dp.on('pageerror', lambda e: errors.append(str(e)))
+    dp.goto('http://127.0.0.1:8766/index.html'); dp.wait_for_selector('.bubble')
+    dp.evaluate("async () => { const s = await import('/js/storage.js'); for (let i = 0; i < 6; i++) await s.saveNote('删除测试 ' + i); (await import('/js/trashbin.js')).setCount(await s.countNotes()); }")
+    for i in range(3):
+        dp.click('#btn-list'); dp.wait_for_selector('#items .note-item')
+        h = dp.evaluate("document.querySelector('#items').clientHeight"); vis = dp.locator('#items .note-item').first.is_visible()
+        assert dp.locator('#items .note-item').count() == 6 and h >= 100 and vis, (i, h)
+        dp.click('#btn-list'); assert dp.locator('#panel.hidden').count() == 1
+    dp.click('#btn-list'); dp.wait_for_selector('#items .note-item')
+    dp.locator('.note-item .del').first.click()
+    assert dp.locator('.note-item .ask').inner_text() == '确定删除这条吗？'
+    dp.locator('.note-item .no').click(); assert dp.locator('#items .note-item').count() == 6
+    dp.locator('.note-item .del').first.click(); dp.locator('.note-item .yes').click(); dp.wait_for_timeout(300)
+    assert dp.locator('#items .note-item').count() == 5 and dp.text_content('#count') == '5'
+    assert dp.evaluate("async () => (await import('/js/storage.js')).countNotes()") == 5
+    dp.keyboard.press('Escape'); dp.click('#btn-list'); dp.wait_for_selector('#items .note-item')
+    assert dp.locator('#items .note-item').count() == 5; dc.close()
+    print('删除确认 + 计数更新 + 反复开关列表不空白 OK')
     # 默认状态截图：全新上下文（无存储），所有对话框为空、只显示淡色提示语
     ctx = b.new_context(viewport={'width': 1280, 'height': 800}); fp = ctx.new_page()
     fp.on('pageerror', lambda e: errors.append(str(e)))

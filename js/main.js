@@ -47,7 +47,8 @@ function placePanel() {
   const t = trash.getTrashRect(), left = innerWidth - right - W;
   let maxH = Math.min(innerHeight * 0.7, 520);
   if (left < t.right && innerWidth - right > t.left) maxH = Math.min(maxH, t.top - top - 12);
-  panel.style.maxHeight = Math.max(140, maxH) + 'px';
+  // 列表需要至少约 300px 才能放下搜索栏和几条想法；太矮时宁可盖住桶顶一点，也不能把列表挤成 0 高度（空白）
+  panel.style.maxHeight = Math.max(current === 'list' ? 300 : 140, maxH) + 'px';
 }
 function closePanel() { panel.classList.add('hidden'); current = null; document.querySelectorAll('#toolbar .on').forEach(b => b.classList.remove('on')); }
 function openPanel(kind) {
@@ -85,6 +86,7 @@ async function pickedNotes() {
 }
 async function renderAI() {
   const notes = await pickedNotes();
+  if (current !== 'ai') return;
   body.innerHTML = `<p>将整理 <b>${notes.length}</b> 条想法（${selected.size ? '已勾选的' : '全部；可在「想法列表」里勾选'}）。</p>
     <div class="row"><button id="go">✨ 用 DeepSeek 整理</button><button id="copy">📋 一键复制整理提示词</button><button id="mystic">🔮 复制玄学解读提示词</button></div>
     <p style="font-size:12px;color:#888">没有密钥？复制提示词后贴到豆包或 WorkBuddy 里用。</p><div id="out"></div>`;
