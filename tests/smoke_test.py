@@ -421,18 +421,18 @@ with sync_playwright() as p:
             nb = ep.locator('#tour-tip .next')
             if nb.inner_text() == 'Start tossing': nb.click(); break
             assert nb.inner_text() == 'Next' and ep.inner_text('#tour-tip .skip') == 'Skip'; nb.click()
-        assert steps == ['Write anything on this card. No format needed.', 'Tag it: rant, idea, or secret?', 'Drag it into the bin. Nom. Saved.', 'Bored? Double-click the bin. Trust me.',
+        assert steps == ['Write anything on this card. No format needed.', 'Tag it: rant, idea, or deep thoughts?', 'Drag it into the bin. Nom. Saved.', 'Bored? Double-click the bin. Trust me.',
             'Everything you wrote lives here. You can also make a weekly recap image.', 'Brain too messy? Let AI turn it into a to-do list.', 'Forgot how it works? Tap Help anytime.'], steps
         tb = ep.locator('#toolbar').inner_text()
-        for w in ['My notes', 'Weekly recap', 'AI tidy-up', 'Back up', 'Settings', 'Help', 'EN']: assert w in tb, (w, tb)
-        assert 'Rants, ideas' in ep.inner_text('#hero') and 'Ate' in ep.inner_text('#counter')
+        for w in ['My notes', 'Weekly recap', 'AI sort-out', 'Back up', 'Settings', 'Help', 'EN']: assert w in tb, (w, tb)
+        assert 'Rants, ideas' in ep.inner_text('#hero') and 'Eaten:' in ep.inner_text('#counter')
         assert ep.locator('.bubble .grip').first.inner_text().startswith('⠿ Drag me')
         assert not re.search(r'[\u4e00-\u9fff]', ep.inner_text('body').replace('中', '')), ep.inner_text('body')
         overlap_check(ep, W)
         if W == 1280:
             ep.hover('#btn-help'); ep.wait_for_selector('#help-pop.show'); ht = ep.inner_text('#help-pop')
             assert ht.startswith('Help') and 'v1.2' in ht and 'Replay the tour' in ht and not re.search(r'[\u4e00-\u9fff]', ht.replace('中', '')), ht
-            overlap_check(ep, W); author_ok(ep, 'Chat with me on X', 'View on GitHub', 'Got ideas or hit a bug? Come chat on X.')
+            overlap_check(ep, W); author_ok(ep, 'Chat with me on X', 'View on GitHub', 'Ideas? Bugs? Find me on X.')
             ep.mouse.move(640, 700); ep.wait_for_timeout(400)
             for k in ['list', 'ai', 'settings']:
                 ep.click(f'#btn-{k}'); ep.wait_for_timeout(250); overlap_check(ep, W)
@@ -443,7 +443,7 @@ with sync_playwright() as p:
             for w in ['For entertainment only', "Today's Fortune", 'Do:', 'Avoid:', 'Lucky color', 'Reading:', '3 practical tips', 'health', 'invest']: assert w in pr[1], w
             ep.click('#btn-review'); ep.wait_for_selector('#review canvas'); assert ep.inner_text('#review-dl') == '⬇ Download PNG'; ep.click('#review-close')
         else:
-            author_ok(ep, 'Chat with me on X', 'View on GitHub', 'Got ideas or hit a bug? Come chat on X.')
+            author_ok(ep, 'Chat with me on X', 'View on GitHub', 'Ideas? Bugs? Find me on X.')
         # 输入文字后切到中文：不刷新、不丢字
         ep.locator('.bubble textarea').first.fill('keep me 保留')
         ep.evaluate("window.__noReload = 1"); ep.click('#btn-lang'); ep.wait_for_timeout(300)

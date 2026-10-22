@@ -98,7 +98,7 @@ Author: [@IvanYang297](https://github.com/IvanYang297) · X: [@PinkY63990316](ht
 A tiny web page where you scribble thoughts on floating cards and drag them into a cartoon trash bin. Nothing is really thrown away: notes are saved in your browser (or as Markdown files in a folder you pick in Chrome/Edge). Get a weekly recap image, search and export everything, or copy a ready-made prompt to let an AI turn the mess into a to-do list (plus a just-for-fun "office fortune" prompt).
 
 - Bilingual (v1.2): follows your browser language (any `zh*` → Chinese, otherwise English), switch anytime with **中 / EN** in the top-right. No IP lookup, no network calls.
-- Free, no sign-up, works offline (except AI tidy-up). Your notes never leave your browser.
+- Free, no sign-up, works offline (except AI sort-out). Your notes never leave your browser.
 - Run locally: `python3 -m http.server 8000` in the repo folder, then open <http://localhost:8000>.
 - Translations live in `js/i18n.js`; side-by-side review sheet: `docs/i18n-review.md`.
 
