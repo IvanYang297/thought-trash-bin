@@ -257,6 +257,9 @@ with sync_playwright() as p:
     print('面板开关 OK（按钮切换 / 点外面 / Esc）')
     # 3. 本周回顾卡片 + 下载 PNG
     pg.click('#btn-review'); pg.wait_for_selector('#review canvas')
+    assert pg.get_attribute('#review canvas', 'data-footer') == 'thought-trash-bin.pages.dev'
+    ink = pg.evaluate("() => { const c = document.querySelector('#review canvas'), d = c.getContext('2d').getImageData(150, 708, 300, 20).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i] < 200) n++; return n; }")
+    assert ink > 30, f'回顾图底部网址区域为空（{ink}）'; print('回顾图底部印网址 OK')
     with pg.expect_download() as dl: pg.click('#review-dl')
     dl.value.save_as(os.path.join(ROOT, 'docs', 'review-card.png'))
     assert os.path.getsize(os.path.join(ROOT, 'docs', 'review-card.png')) > 10000
@@ -312,7 +315,7 @@ with sync_playwright() as p:
     assert len(seen) == 7 and '随时点这里' in seen[-1] and op.locator('#tour-tip').count() == 0 and op.locator('.tour-mark').count() == 0, seen
     op.reload(); op.wait_for_selector('.bubble'); op.wait_for_timeout(600)
     assert op.locator('#landing').is_hidden() and op.locator('#tour-tip').count() == 0, '回访应自动跳过'
-    op.hover('#btn-help'); op.wait_for_selector('#help-pop.show'); assert 'v1.1' in op.inner_text('#help-pop .help-title'); op.click('#help-tour'); op.wait_for_selector('#tour-tip')
+    op.hover('#btn-help'); op.wait_for_selector('#help-pop.show'); assert 'v1.1.1' in op.inner_text('#help-pop .help-title'); op.click('#help-tour'); op.wait_for_selector('#tour-tip')
     op.click('#tour-tip .skip'); assert op.locator('#tour-tip').count() == 0
     oc.close(); print('落地页 + 引导（7 步 / 跳过 / 只一次 / 可重开）OK')
     # 备份提醒：未备份 10 条弹一次，之后每 +20；工具栏「导出备份」可见

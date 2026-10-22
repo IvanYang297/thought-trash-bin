@@ -4,7 +4,7 @@
 
 ![截图](docs/screenshot.png)
 
-当前版本 **v1.1**（更新记录见 [CHANGELOG.md](CHANGELOG.md)）。在线体验：<https://thought-trash-bin.pages.dev>
+当前版本 **v1.1.1**（更新记录见 [CHANGELOG.md](CHANGELOG.md)）。在线体验：<https://thought-trash-bin.pages.dev>
 
 | 第一次打开：新手引导 | 分享卡片（og:image） |
 |---|---|

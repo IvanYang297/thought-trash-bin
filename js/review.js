@@ -12,6 +12,7 @@ export function weekStats(notes, now = new Date()) {
   return { total: wk.length, by, from: weekStart(now), to: now };
 }
 const COMMENTS = [[0, '这周很安静，是不是太忙了？'], [1, '这周丢了几条，状态还行～'], [10, '这周脑子很活跃嘛！'], [25, '这周槽点满满，辛苦了，抱抱！']];
+export const FOOTER_URL = 'thought-trash-bin.pages.dev';
 export function drawCard(canvas, st) {
   const W = 600, H = 760; canvas.width = W; canvas.height = H;
   const c = canvas.getContext('2d'), F = '"PingFang SC","Microsoft YaHei",sans-serif';
@@ -37,6 +38,8 @@ export function drawCard(canvas, st) {
   const cm = COMMENTS.filter(([m]) => st.total >= m).pop()[1];
   c.textAlign = 'center'; c.font = `bold 24px ${F}`; c.fillStyle = '#5a3e1b'; c.fillText(cm, W / 2, 665);
   c.font = `16px ${F}`; c.fillStyle = '#9a7b4f'; c.fillText('—— 思绪垃圾桶', W / 2, 700);
+  c.font = `14px ${F}`; c.fillStyle = '#b39a74'; c.fillText(FOOTER_URL, W / 2, 722);
+  canvas.dataset.footer = FOOTER_URL;
 }
 export function showReview(notes, now = new Date()) {
   document.getElementById('review')?.remove();
