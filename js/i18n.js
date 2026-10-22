@@ -1,6 +1,6 @@
 // 多语言：中文 / English。按浏览器语言自动选（任何 zh* → 中文，其余 → 英文），不查 IP、不发网络请求；
 // 右上角「中 / EN」可手动切换，选择存在 localStorage，优先于自动检测。
-// 每个词条：[中文, English]。要改文案直接改这里（docs/i18n-review.md 是对照表）。
+// 每个词条：[中文, English]。要改文案直接改这里。
 const KEY = 'ttb.lang';
 export const D = {
   // ---- 页面 head ----
