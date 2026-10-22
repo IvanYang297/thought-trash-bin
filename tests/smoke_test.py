@@ -315,6 +315,21 @@ with sync_playwright() as p:
     op.hover('#btn-help'); op.wait_for_selector('#help-pop.show'); op.click('#help-tour'); op.wait_for_selector('#tour-tip')
     op.click('#tour-tip .skip'); assert op.locator('#tour-tip').count() == 0
     oc.close(); print('落地页 + 引导（7 步 / 跳过 / 只一次 / 可重开）OK')
+    # 备份提醒：未备份 10 条弹一次，之后每 +20；工具栏「导出备份」可见
+    bc = b.new_context(viewport={'width': 1280, 'height': 800}, accept_downloads=True); bp = bc.new_page()
+    bp.on('console', lambda m: m.type == 'error' and errors.append(m.text)); bp.on('pageerror', lambda e: errors.append(str(e)))
+    bp.goto('http://127.0.0.1:8766/index.html'); bp.wait_for_selector('.bubble')
+    assert bp.locator('#toolbar #btn-backup').is_visible()
+    nudge = lambda k: bp.evaluate(f"async () => {{ const s = await import('/js/storage.js'); for (let i = 0; i < {k}; i++) await s.saveNote('备份测试 ' + i); return (await import('/js/backup.js')).maybeNudge(); }}")
+    assert nudge(9) is False and bp.locator('#backup-nudge').count() == 0
+    assert nudge(1) is True and bp.locator('#backup-nudge').is_visible()
+    bp.click('#backup-nudge .x'); assert bp.locator('#backup-nudge').count() == 0
+    assert nudge(19) is False and nudge(1) is True
+    with bp.expect_download() as bd: bp.click('#backup-nudge .go')
+    assert bd.value.suggested_filename.endswith('.md') and bp.locator('#backup-nudge').count() == 0
+    assert nudge(9) is False and nudge(1) is True  # 导出后重新计数
+    with bp.expect_download(): bp.click('#btn-backup')
+    bc.close(); print('备份提醒 + 工具栏导出备份 OK')
     # 回归：删除按钮（不依赖原生 confirm，Playwright 默认会自动取消原生弹窗 = 用户看到的「点了没反应」）
     # + 窗口较矮时第二次打开列表不能是空白（列表区曾被挤成 0 高度）
     dc = b.new_context(viewport={'width': 1280, 'height': 600}); dp = dc.new_page()

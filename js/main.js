@@ -13,6 +13,7 @@ import { initShortcuts } from './shortcuts.js';
 import * as cb from './custom-banner.js';
 import { initHelpPopover } from './help.js';
 import { initLanding, startTour } from './tour.js';
+import { maybeNudge } from './backup.js';
 
 const $ = s => document.querySelector(s);
 export function toast(msg, ms = 2200) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), ms); }
@@ -27,7 +28,7 @@ initBubbles($('#stage'), {
   onDrop: async (b, text, tag) => {
     b.remove(); trash.chew();
     try { const n = await store.saveNote(text, tag); trash.setCount(await store.countNotes()); toast(n.inFolder ? '嚼嚼嚼…已存进文件夹 📁' : '嚼嚼嚼…已存在浏览器里');
-      const u = await store.countUnsorted(); fill.renderPile(u, { afterChew: true }); if (fill.shouldBurp(u)) setTimeout(() => fill.burp(toast), 1000); refreshPanel(); }
+      const u = await store.countUnsorted(); fill.renderPile(u, { afterChew: true }); if (fill.shouldBurp(u)) setTimeout(() => fill.burp(toast), 1000); refreshPanel(); maybeNudge(); }
     catch (e) { console.error(e); toast('保存失败：' + e.message); }
   },
 });
@@ -68,6 +69,7 @@ $('#btn-list').onclick = () => openPanel('list');
 $('#btn-review').onclick = async () => review.showReview(await store.listNotes());
 $('#btn-ai').onclick = () => openPanel('ai');
 $('#btn-settings').onclick = () => openPanel('settings');
+$('#btn-backup').onclick = async () => { await store.exportAll(); document.getElementById('backup-nudge')?.remove(); toast('已导出全部想法（.md），存好这个文件就不怕丢'); };
 initHelpPopover($('#btn-help'), () => startTour(0));
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;

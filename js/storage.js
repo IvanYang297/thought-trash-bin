@@ -100,4 +100,10 @@ export async function exportAll() {
   const notes = await listNotes();
   const md = `# 思绪垃圾桶 导出（共 ${notes.length} 条）\n\n` + notes.map(n => `## ${fmtFull(n.createdAt)}${n.tag ? ' #' + n.tag : ''}\n\n${n.text}\n`).join('\n---\n\n');
   download(fileName(Date.now(), '全部想法'), md);
+  localStorage.setItem('ttb.exportedAt', String(Date.now())); localStorage.removeItem('ttb.nudged');
+}
+// 还没备份到文件的条数：没存进文件夹、且在上次导出之后写的
+export async function countUnbacked() {
+  const since = +localStorage.getItem('ttb.exportedAt') || 0;
+  return (await listNotes()).filter(n => !n.inFolder && n.createdAt > since).length;
 }
