@@ -11,7 +11,7 @@ with sync_playwright() as p:
     def block_cf(ctx): ctx.route(re.compile(r'https://(static\.)?cloudflareinsights\.com/.*'), lambda r: r.fulfill(status=200, content_type='application/javascript', body=''))
     _new_ctx = b.new_context
     def new_context(fresh=False, **kw):
-        c = _new_ctx(**kw); block_cf(c)
+        kw.setdefault('locale', 'zh-CN'); c = _new_ctx(**kw); block_cf(c)
         if not fresh: c.add_init_script("localStorage.setItem('ttb.landed','1'); localStorage.setItem('ttb.toured','1')")  # 老用户：跳过落地页和引导
         return c
     b.new_context = new_context
@@ -317,7 +317,7 @@ with sync_playwright() as p:
     assert len(seen) == 7 and '随时点这里' in seen[-1] and op.locator('#tour-tip').count() == 0 and op.locator('.tour-mark').count() == 0, seen
     op.reload(); op.wait_for_selector('.bubble'); op.wait_for_timeout(600)
     assert op.locator('#landing').is_hidden() and op.locator('#tour-tip').count() == 0, '回访应自动跳过'
-    op.hover('#btn-help'); op.wait_for_selector('#help-pop.show'); assert 'v1.1.1' in op.inner_text('#help-pop .help-title'); op.click('#help-tour'); op.wait_for_selector('#tour-tip')
+    op.hover('#btn-help'); op.wait_for_selector('#help-pop.show'); assert 'v1.2' in op.inner_text('#help-pop .help-title'); op.click('#help-tour'); op.wait_for_selector('#tour-tip')
     op.click('#tour-tip .skip'); assert op.locator('#tour-tip').count() == 0
     oc.close(); print('落地页 + 引导（7 步 / 跳过 / 只一次 / 可重开）OK')
     # 备份提醒：未备份 10 条弹一次，之后每 +20；工具栏「导出备份」可见
@@ -365,15 +365,15 @@ with sync_playwright() as p:
     assert fp.get_attribute('#trash', 'data-state') == 'happy' and float(fp.get_attribute('#trash', 'data-mood')) == 0 and 'Q120.0 192.0' in fp.get_attribute('#mouth-smile', 'd')
     X, G = 'https://x.com/PinkY63990316?utm_source=ttb', 'https://github.com/IvanYang297'
     def ov(a, c): return not (a['x'] + a['width'] <= c['x'] or c['x'] + c['width'] <= a['x'] or a['y'] + a['height'] <= c['y'] or c['y'] + c['height'] <= a['y'])
-    def author_ok(pg):
-        hr = pg.locator('#author a').evaluate_all('as => as.map(a => [a.href, a.target, a.rel, a.textContent])')
-        assert hr == [[X, '_blank', 'noopener', '𝕏 @PinkY63990316'], [G, '_blank', 'noopener', 'GitHub @IvanYang297']], hr
-        assert '做这个垃圾桶的人' in pg.text_content('#author')
+    def author_ok(pg, tx='来 X 找我聊', tg='看看源码', hc='有想法、遇到问题？来 X 找我聊。'):
+        hr = pg.locator('#author a').evaluate_all('as => as.map(a => [a.href, a.target, a.rel, a.title, a.getAttribute("aria-label"), !!a.querySelector("svg")])')
+        assert hr == [[X, '_blank', 'noopener', tx, tx, True], [G, '_blank', 'noopener', tg, tg, True]], hr
+        assert pg.text_content('#author').strip() == ''  # 只有图标，不写账号文字
         fb = pg.locator('#author').bounding_box()
         for sel in ['#trash-wrap', '#toolbar', '#btn-add'] + [f'.bubble >> nth={i}' for i in range(pg.locator('.bubble').count())]:
             assert not ov(fb, pg.locator(sel).bounding_box()), (sel, fb)
         assert fb['height'] < 80 and float(pg.evaluate("getComputedStyle(document.querySelector('#author')).fontSize").rstrip('px')) <= 12
-        hp = pg.locator('#help-pop .help-contact a'); assert hp.get_attribute('href') == X and hp.text_content() == '有想法、遇到问题？来 X 找我聊。'
+        hp = pg.locator('#help-pop .help-contact a'); assert hp.get_attribute('href') == X and hp.text_content() == hc
         return fb
     print('作者链接 OK（桌面）', author_ok(fp))
     fp.evaluate('document.activeElement.blur()'); fp.wait_for_timeout(500)
@@ -390,6 +390,74 @@ with sync_playwright() as p:
     print('作者链接 OK（手机 390）', author_ok(mp))
     assert mp.text_content('#tag-tip') == '已选：吐槽'; mob.close(); print('触屏大按钮 + 点按提示 OK', ms)
     print('默认状态全为空提示语 OK:', [ph for _, ph in vals])
+    # ===== v1.2 英文：locale en-US 自动英文；「中 / EN」切换不刷新、不丢输入；选择持久化；不溢出 =====
+    keys = pg.evaluate("async () => { const m = await import('/js/i18n.js'); return Object.entries(m.D).filter(([k, v]) => !(Array.isArray(v) && v.length === 2 && v[0] && v[1] && typeof v[0] === typeof v[1])).map(([k]) => k); }")
+    assert keys == [], keys
+    def overlap_check(pg, w):
+        r = pg.evaluate("""() => { const bad = []; const vw = innerWidth;
+          document.querySelectorAll('#toolbar button, #hero, #author, #landing:not([hidden]) .land-box, #tour-tip, #help-pop.show, #panel:not(.hidden)').forEach(e => {
+            const b = e.getBoundingClientRect(); if (b.width && (b.left < -1 || b.right > vw + 1)) bad.push([e.id || e.className, b.left, b.right]);
+            if (e.scrollWidth > e.clientWidth + 2 && e.tagName === 'BUTTON') bad.push(['clip', e.id, e.scrollWidth, e.clientWidth]); });
+          const bs = [...document.querySelectorAll('#toolbar button')].map(e => e.getBoundingClientRect());
+          for (let i = 0; i < bs.length; i++) for (let j = i + 1; j < bs.length; j++) { const a = bs[i], c = bs[j];
+            if (a.left < c.right - 1 && c.left < a.right - 1 && a.top < c.bottom - 1 && c.top < a.bottom - 1) bad.push(['tb-overlap', i, j]); }
+          return bad; }""")
+        assert not r, (w, r)
+    for W in (1280, 390):
+        ec = b.new_context(fresh=True, locale='en-US', viewport={'width': W, 'height': 800}, **({'has_touch': True, 'is_mobile': True} if W == 390 else {})); ep = ec.new_page()
+        ep.on('console', lambda m: m.type == 'error' and errors.append(m.text)); ep.on('pageerror', lambda e: errors.append(str(e)))
+        ep.goto('http://127.0.0.1:8766/index.html'); ep.wait_for_selector('#landing:not([hidden])')
+        assert ep.get_attribute('html', 'lang') == 'en' and ep.title().startswith('Thought Trash Bin')
+        assert ep.inner_text('#landing h1') == 'Thought Trash Bin' and ep.inner_text('#land-enter') == 'Open the bin →'
+        assert 'Rants, ideas, 3am thoughts. Write it, toss it, feel lighter.' in ep.inner_text('#landing') and 'What is this?' in ep.inner_text('#landing') and 'Who is it for?' in ep.inner_text('#landing')
+        assert 'Free, no sign-up. Everything stays in your own browser.' in ep.inner_text('#landing')
+        assert not re.search(r'[\u4e00-\u9fff]', ep.inner_text('#landing').replace('中', '')), ep.inner_text('#landing')
+        overlap_check(ep, W)
+        if W == 1280: ep.screenshot(path=os.path.join(ROOT, 'docs', 'landing-en.png'))
+        ep.click('#land-enter'); ep.wait_for_selector('#tour-tip')
+        steps = []
+        for i in range(10):
+            steps.append(ep.inner_text('#tour-tip p')); overlap_check(ep, W)
+            nb = ep.locator('#tour-tip .next')
+            if nb.inner_text() == 'Start tossing': nb.click(); break
+            assert nb.inner_text() == 'Next' and ep.inner_text('#tour-tip .skip') == 'Skip'; nb.click()
+        assert steps == ['Write anything on this card. No format needed.', 'Tag it: rant, idea, or secret?', 'Drag it into the bin. Nom. Saved.', 'Bored? Double-click the bin. Trust me.',
+            'Everything you wrote lives here. You can also make a weekly recap image.', 'Brain too messy? Let AI turn it into a to-do list.', 'Forgot how it works? Tap Help anytime.'], steps
+        tb = ep.locator('#toolbar').inner_text()
+        for w in ['My notes', 'Weekly recap', 'AI tidy-up', 'Back up', 'Settings', 'Help', 'EN']: assert w in tb, (w, tb)
+        assert 'Rants, ideas' in ep.inner_text('#hero') and 'Ate' in ep.inner_text('#counter')
+        assert ep.locator('.bubble .grip').first.inner_text().startswith('⠿ Drag me')
+        assert not re.search(r'[\u4e00-\u9fff]', ep.inner_text('body').replace('中', '')), ep.inner_text('body')
+        overlap_check(ep, W)
+        if W == 1280:
+            ep.hover('#btn-help'); ep.wait_for_selector('#help-pop.show'); ht = ep.inner_text('#help-pop')
+            assert ht.startswith('Help') and 'v1.2' in ht and 'Replay the tour' in ht and not re.search(r'[\u4e00-\u9fff]', ht.replace('中', '')), ht
+            overlap_check(ep, W); author_ok(ep, 'Chat with me on X', 'View on GitHub', 'Got ideas or hit a bug? Come chat on X.')
+            ep.mouse.move(640, 700); ep.wait_for_timeout(400)
+            for k in ['list', 'ai', 'settings']:
+                ep.click(f'#btn-{k}'); ep.wait_for_timeout(250); overlap_check(ep, W)
+                assert not re.search(r'[\u4e00-\u9fff]', ep.inner_text('#panel')), (k, ep.inner_text('#panel'))
+                ep.click(f'#btn-{k}')
+            pr = ep.evaluate("async () => { const a = await import('/js/ai.js'), m = await import('/js/mystic-prompt.js'), n = [{createdAt: Date.now(), text: 'boss again'}]; return [a.buildPrompt(n), m.buildMysticPrompt(n)]; }")
+            assert pr[0].startswith("You're") and 'Let it go' in pr[0] and not re.search(r'[\u4e00-\u9fff]', pr[0] + pr[1])
+            for w in ['For entertainment only', "Today's Fortune", 'Do:', 'Avoid:', 'Lucky color', 'Reading:', '3 practical tips', 'health', 'invest']: assert w in pr[1], w
+            ep.click('#btn-review'); ep.wait_for_selector('#review canvas'); assert ep.inner_text('#review-dl') == '⬇ Download PNG'; ep.click('#review-close')
+        else:
+            author_ok(ep, 'Chat with me on X', 'View on GitHub', 'Got ideas or hit a bug? Come chat on X.')
+        # 输入文字后切到中文：不刷新、不丢字
+        ep.locator('.bubble textarea').first.fill('keep me 保留')
+        ep.evaluate("window.__noReload = 1"); ep.click('#btn-lang'); ep.wait_for_timeout(300)
+        assert ep.evaluate("window.__noReload") == 1 and ep.get_attribute('html', 'lang') == 'zh-CN'
+        assert ep.locator('.bubble textarea').first.input_value() == 'keep me 保留'
+        assert '想法列表' in ep.inner_text('#toolbar') and ep.locator('.bubble .grip').first.inner_text().startswith('⠿ 拖我')
+        assert ep.locator('.bubble textarea').nth(1).get_attribute('placeholder') in ep.evaluate("async () => (await import('/js/i18n.js')).D['bubble.hints'][0]")
+        overlap_check(ep, W)
+        ep.reload(); ep.wait_for_selector('.bubble'); ep.wait_for_timeout(400)
+        assert ep.get_attribute('html', 'lang') == 'zh-CN' and '想法列表' in ep.inner_text('#toolbar') and ep.locator('#landing').is_hidden()
+        if W == 1280:  # 再切回英文截主页图
+            ep.click('#btn-lang'); ep.wait_for_timeout(300); ep.evaluate('document.activeElement.blur()'); ep.mouse.move(640, 760); ep.wait_for_timeout(2600)
+            ep.screenshot(path=os.path.join(ROOT, 'docs', 'screenshot-en.png'))
+        ec.close(); print(f'英文版 OK（{W}）：落地页 / 7 步引导 / 工具栏 / 使用须知 / 切换不丢字 / 刷新后保持中文 / 不溢出')
     b.close()
 srv.shutdown()
 assert not errors, errors
