@@ -13,7 +13,7 @@ Key facts:
 
 ## Links
 - [Open the app](https://thought-trash-bin.pages.dev/): use it directly in the browser
-- [About / FAQ](https://thought-trash-bin.pages.dev/about.html): features, privacy, FAQ (zh/en)
+- [About / FAQ](https://thought-trash-bin.pages.dev/about): features, privacy, FAQ (zh/en)
 - [Source code](https://github.com/IvanYang297/thought-trash-bin): README, MIT license
 - [Changelog](https://github.com/IvanYang297/thought-trash-bin/blob/master/CHANGELOG.md): release notes
 
