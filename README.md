@@ -1,20 +1,52 @@
-# 🗑️ 思绪垃圾桶 · Thought Trash Bin
+# 🗑️ 思绪垃圾桶 · Thought Trash Bin — 离线、免注册的想法垃圾桶 / Offline, no-account brain dump
 
-把乱糟糟的想法、上班吐槽、心里话随手丢进垃圾桶，写完就轻松一点。
-Rants, ideas, 3am thoughts — write it, toss it, feel lighter.
+把烦心事、灵感、心里话写下来，拖进垃圾桶就保存；数据只存在你的浏览器里，可以用 AI 整理成待办。
+Write rants, ideas and 3am thoughts, drag them into the bin to save. Notes stay in your browser; let AI sort them into tasks when you want.
 
 ## 👉 [直接打开 / Open it: https://thought-trash-bin.pages.dev](https://thought-trash-bin.pages.dev)
 
-免费、不用注册，打开网页就能用。
-Free, no sign-up — just open the page.
+免费 · 开源（MIT）· 不用注册 · 离线可用 · 中英双语
+Free · Open source (MIT) · No sign-up · Works offline · Chinese / English
 
 | 中文 | English |
 |---|---|
-| ![中文首页](docs/landing.png) | ![English landing](docs/landing-en.png) |
-| ![中文截图](docs/screenshot.png) | ![English screenshot](docs/screenshot-en.png) |
+| ![思绪垃圾桶首页：写下想法拖进垃圾桶](docs/landing.png) | ![Thought Trash Bin landing page](docs/landing-en.png) |
+| ![拖进桶里保存](docs/screenshot.png) | ![Drag a note into the bin](docs/screenshot-en.png) |
+| ![本周回顾卡片](docs/review-card.png) | ![AI sort-out panel](docs/ai-panel.png) |
 
-当前版本 **v1.2.1**，更新记录见 [CHANGELOG.md](CHANGELOG.md)。
-Current version **v1.2.1**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
+## 常见问题 · FAQ
+
+**需要注册或联网吗？ / Do I need an account or internet?**
+不用注册。除了 AI 整理，其他功能都能离线使用。
+No account. Everything except AI sort-out works offline.
+
+**我的想法存在哪里？ / Where are my notes stored?**
+存在你自己浏览器的 IndexedDB 里；在 Edge / Chrome 里还可以选一个文件夹，每条存成一个 `.md` 文件。没有服务器、没有数据库。
+In your own browser (IndexedDB). In Edge / Chrome you can also pick a folder and each note is saved as a `.md` file. No server, no database.
+
+**AI 整理怎么用？密钥安全吗？ / How does AI sort-out work? Is my key safe?**
+填入你自己的 DeepSeek 密钥，它只存在你的浏览器里，只在你点「AI 整理」时随请求发给 DeepSeek。没有密钥也能一键复制提示词，贴到任何 AI 里用。
+Add your own DeepSeek key; it stays in your browser and is sent to DeepSeek only when you click AI sort-out. No key? Copy the ready-made prompt into any AI.
+
+**换电脑或清缓存会丢吗？ / Will I lose notes if I clear my browser?**
+清除浏览器数据会删掉浏览器里的想法。请用「💾 导出备份」导出 `.md`，或使用文件夹保存。
+Clearing browser data removes them. Use "💾 Export backup" or folder saving.
+
+**能给想法分类吗？ / Can I categorize notes?**
+可以，有心情标签：😤 吐槽 / 💡 灵感 / 😢 心里话，列表可筛选和搜索。
+Yes: mood tags 😤 Rant / 💡 Idea / 😢 Deep thoughts, with filter and search.
+
+**有回顾功能吗？ / Is there a review?**
+有「本周回顾」统计卡片，可下载 PNG 或分享。
+Yes, a weekly recap card you can download as PNG or share.
+
+**支持英文吗？ / English?**
+按浏览器语言自动切换，右上角「中 / EN」随时切换。
+Follows your browser language; switch anytime with "中 / EN".
+
+**可以自己部署吗？ / Can I self-host?**
+可以，纯静态网页，见下方「自己部署」。
+Yes, it's a plain static site — see "Self-host" below.
 
 ## 功能 · Features
 

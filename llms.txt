@@ -1,0 +1,22 @@
+# 思绪垃圾桶 · Thought Trash Bin
+
+> Free, open-source (MIT), offline-first brain dump web app. Write rants, ideas or private thoughts, drag the note into a trash bin to save it. Notes stay in the user's browser; no account, no server. Chinese and English.
+> 免费开源（MIT）、离线优先的想法垃圾桶网页：写下烦心事、灵感、心里话，拖进垃圾桶保存。数据只存在浏览器，无需注册，中英双语。
+
+Key facts:
+- Storage: browser IndexedDB; optionally each note as a .md file in a user-chosen folder (File System Access API, Edge/Chrome).
+- Works offline except AI sort-out.
+- AI sort-out: user's own DeepSeek API key, kept only in the browser and sent only to DeepSeek on request; or copy a ready-made prompt into any AI.
+- Mood tags (Rant / Idea / Deep thoughts), list search and filter, weekly recap card (PNG), Markdown backup export.
+- Not encrypted, no cloud sync, not a medical/therapy tool.
+- Anonymous visit counts via Cloudflare Web Analytics; note content is never collected.
+
+## Links
+- [Open the app](https://thought-trash-bin.pages.dev/): use it directly in the browser
+- [About / FAQ](https://thought-trash-bin.pages.dev/about.html): features, privacy, FAQ (zh/en)
+- [Source code](https://github.com/IvanYang297/thought-trash-bin): README, MIT license
+- [Changelog](https://github.com/IvanYang297/thought-trash-bin/blob/master/CHANGELOG.md): release notes
+
+## Contact
+- X: https://x.com/PinkY63990316
+- GitHub: https://github.com/IvanYang297

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>思绪垃圾桶 Thought Trash Bin｜离线、免注册的想法垃圾桶 · Offline brain dump</title>
+<meta name="description" content="思绪垃圾桶：把烦心事、灵感、心里话写下来拖进垃圾桶保存。免注册、离线可用、数据只存浏览器，可用 DeepSeek 或任意 AI 整理。Free, open-source, offline brain dump that keeps notes in your browser.">
+<link rel="canonical" href="https://thought-trash-bin.pages.dev/about.html">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="思绪垃圾桶 Thought Trash Bin">
+<meta property="og:title" content="思绪垃圾桶 · Thought Trash Bin — 离线、免注册的想法垃圾桶">
+<meta property="og:description" content="写下来，拖进桶里。数据只存在你的浏览器。Write it, toss it, feel lighter.">
+<meta property="og:url" content="https://thought-trash-bin.pages.dev/about.html">
+<meta property="og:image" content="https://thought-trash-bin.pages.dev/assets/og-image.png">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:locale:alternate" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@PinkY63990316">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "思绪垃圾桶 Thought Trash Bin",
+  "alternateName": ["Thought Trash Bin", "思绪垃圾桶"],
+  "applicationCategory": "LifestyleApplication",
+  "operatingSystem": "Web browser",
+  "url": "https://thought-trash-bin.pages.dev/",
+  "image": "https://thought-trash-bin.pages.dev/assets/og-image.png",
+  "description": "Offline, no-account brain dump web app: write notes, drag them into a bin to save. Notes stay in the browser (IndexedDB) or a local folder as Markdown. Optional AI sort-out with your own DeepSeek key. Chinese and English.",
+  "inLanguage": ["zh-CN", "en"],
+  "softwareVersion": "1.2.1",
+  "license": "https://opensource.org/licenses/MIT",
+  "isAccessibleForFree": true,
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+  "codeRepository": "https://github.com/IvanYang297/thought-trash-bin",
+  "author": {"@type": "Person", "name": "IvanYang297", "url": "https://github.com/IvanYang297", "sameAs": ["https://x.com/PinkY63990316"]},
+  "featureList": ["Drag a note into the bin to save", "Offline-first, stored in IndexedDB", "Optional Markdown folder saving (File System Access API, Edge/Chrome)", "Mood tags", "Weekly recap card (PNG)", "AI sort-out with your own DeepSeek key", "Copyable prompt for any AI", "Export backup as Markdown", "Chinese / English"]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type": "Question", "name": "需要注册或联网吗？Do I need an account or internet?", "acceptedAnswer": {"@type": "Answer", "text": "不用注册，除 AI 整理外都能离线用。No account; everything except AI sort-out works offline."}},
+    {"@type": "Question", "name": "想法存在哪里？Where are my notes stored?", "acceptedAnswer": {"@type": "Answer", "text": "存在你浏览器的 IndexedDB，Edge/Chrome 可另存为文件夹里的 .md 文件，没有服务器。In your browser's IndexedDB, optionally as .md files in a folder you pick (Edge/Chrome). No server."}},
+    {"@type": "Question", "name": "DeepSeek 密钥安全吗？Is my DeepSeek key safe?", "acceptedAnswer": {"@type": "Answer", "text": "密钥只存在你的浏览器，只在点 AI 整理时发给 DeepSeek。The key stays in your browser and is sent only to DeepSeek when you click AI sort-out."}},
+    {"@type": "Question", "name": "清缓存会丢吗？Will clearing the browser lose notes?", "acceptedAnswer": {"@type": "Answer", "text": "会，请用导出备份或文件夹保存。Yes; use Export backup or folder saving."}},
+    {"@type": "Question", "name": "是开源的吗？Is it open source?", "acceptedAnswer": {"@type": "Answer", "text": "是，MIT 许可证。Yes, MIT licensed."}}
+  ]
+}
+</script>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#fdf8ef;color:#2b2b2b;line-height:1.7}
+main{max-width:760px;margin:0 auto;padding:32px 20px}
+h1{font-size:1.8rem;margin:.2em 0}
+.en{color:#666;font-size:.95em}
+.cta{display:inline-block;background:#a8dcc0;color:#1d3b2c;padding:12px 22px;border-radius:12px;text-decoration:none;font-weight:600;margin:12px 0}
+img{max-width:100%;border-radius:12px;border:1px solid #eee}
+dt{font-weight:600;margin-top:1em}
+footer{margin-top:40px;font-size:.9em;color:#777}
+</style>
+</head>
+<body>
+<main>
+<h1>🗑️ 思绪垃圾桶 · Thought Trash Bin</h1>
+<p>把烦心事、灵感、心里话写下来，拖进垃圾桶就保存。免注册、离线可用，数据只存在你的浏览器里。</p>
+<p class="en">Write rants, ideas and 3am thoughts, drag them into the bin to save. No sign-up, works offline, notes stay in your browser.</p>
+<a class="cta" href="/">立即打开 / Open it →</a>
+<img src="/docs/screenshot.png" alt="思绪垃圾桶截图：把想法拖进垃圾桶 / Dragging a note into the bin" width="1200" loading="lazy">
+
+<h2>功能 · Features</h2>
+<ul>
+<li>写下来拖进桶里保存，桶会“嚼嚼嚼”。<span class="en">Drag a note into the bin to save it.</span></li>
+<li>离线优先：存在浏览器 IndexedDB；Edge / Chrome 可存到你选的文件夹（每条一个 .md）。<span class="en">Offline-first IndexedDB storage; optional Markdown folder in Edge / Chrome.</span></li>
+<li>心情标签：😤 吐槽 / 💡 灵感 / 😢 心里话，可筛选、搜索。<span class="en">Mood tags with filter and search.</span></li>
+<li>本周回顾卡片，可下载 PNG 或分享。<span class="en">Weekly recap card as PNG.</span></li>
+<li>AI 整理：用你自己的 DeepSeek 密钥（只存在浏览器），或复制提示词到任意 AI。<span class="en">AI sort-out with your own DeepSeek key, or copy a prompt into any AI.</span></li>
+<li>💾 导出备份（Markdown）。<span class="en">Export backup as Markdown.</span></li>
+<li>中英双语，自动识别浏览器语言。<span class="en">Chinese / English, follows your browser.</span></li>
+</ul>
+
+<h2>隐私 · Privacy</h2>
+<p>没有服务器、数据库和账号。网站只用 Cloudflare Web Analytics 做匿名访问统计，不含任何想法内容。<span class="en">No server, database or account. Anonymous Cloudflare Web Analytics only; never your notes.</span></p>
+
+<h2>常见问题 · FAQ</h2>
+<dl>
+<dt>需要注册或联网吗？ Do I need an account or internet?</dt>
+<dd>不用注册，除 AI 整理外都能离线用。<span class="en">No account; everything except AI sort-out works offline.</span></dd>
+<dt>想法存在哪里？ Where are my notes stored?</dt>
+<dd>你浏览器的 IndexedDB，可选文件夹 .md。<span class="en">Your browser's IndexedDB, optionally .md files in a folder.</span></dd>
+<dt>DeepSeek 密钥安全吗？ Is my key safe?</dt>
+<dd>只存在你的浏览器，只在点 AI 整理时发给 DeepSeek。<span class="en">Stored in your browser, sent only to DeepSeek on AI sort-out.</span></dd>
+<dt>清缓存会丢吗？ Will clearing the browser lose notes?</dt>
+<dd>会，请定期导出备份。<span class="en">Yes; export backups regularly.</span></dd>
+<dt>是开源的吗？ Is it open source?</dt>
+<dd>是，MIT 许可证。<span class="en">Yes, MIT.</span></dd>
+</dl>
+
+<footer>
+<p>开源仓库 / Source: <a href="https://github.com/IvanYang297/thought-trash-bin">github.com/IvanYang297/thought-trash-bin</a></p>
+<p>作者 / Author: <a href="https://x.com/PinkY63990316">X @PinkY63990316</a> · <a href="https://github.com/IvanYang297">GitHub IvanYang297</a></p>
+</footer>
+</main>
+</body>
+</html>
